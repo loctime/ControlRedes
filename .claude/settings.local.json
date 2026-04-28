@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git -C \"C:\\\\Users\\\\User\\\\Desktop\\\\Proyectos\\\\ControlRedes\" add .planning/research/)",
+      "Bash(git -C \"C:\\\\Users\\\\User\\\\Desktop\\\\Proyectos\\\\ControlRedes\" commit -m \"docs: add domain research \\(stack, features, architecture, pitfalls\\)\")",
+      "Skill(gsd-plan-phase)"
+    ]
+  }
+}

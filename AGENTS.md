@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## What This Is
 
@@ -47,7 +47,7 @@ Telegram "publica lo nuevo"
 
 ## Tech Stack
 
-**Server (Phase 1):** Node.js, Express, dotenv, chokidar (decision deferred to Claude), node-telegram-bot-api or raw fetch (decision deferred)
+**Server (Phase 1):** Node.js, Express, dotenv, chokidar (decision deferred to Codex), node-telegram-bot-api or raw fetch (decision deferred)
 
 **Extension (Phases 2–4):** Manifest V3, `chrome.storage.local`, `chrome.alarms`, `chrome.offscreen`, `chrome.tabCapture`, `chrome.scripting`, IndexedDB (for persisted `FileSystemDirectoryHandle`), `@ffmpeg/ffmpeg` v0.12.x (wasm)
 
@@ -81,7 +81,7 @@ publicaciones-anteriores/
 - **Phase 3 (Recording)** is highest-risk: prototype `chrome.tabCapture.getMediaStreamId` + Offscreen Document before implementing. Seven open questions documented in `.planning/research/STACK.md`.
 - **Phase 4 (Publishing)** requires a throwaway Instagram/LinkedIn account for testing before touching production accounts.
 - **Top pitfalls** (full list in `.planning/research/PITFALLS.md`): SW killed mid-recording, codec mismatch on platform upload, platform UI selector fragility, animation-end detection unreliable, Telegram polling gaps.
-- Library choices within Phase 1 (chokidar vs fs.watch, which Telegram client) are left to Claude's discretion — document the decision in a commit message.
+- Library choices within Phase 1 (chokidar vs fs.watch, which Telegram client) are left to Codex's discretion — document the decision in a commit message.
 
 ---
 *Project initialized: 2026-04-27*
