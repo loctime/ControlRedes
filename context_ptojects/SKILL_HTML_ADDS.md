@@ -5,151 +5,125 @@ description: >
   LinkedIn, Facebook y X/Twitter. Activar SIEMPRE que el usuario pida: crear un HTML
   de publicidad, anuncio, post animado, creatividad para redes, "haceme un ad de X",
   "quiero publicidad para Instagram", "generá un video para LinkedIn", o cualquier
-  contenido visual animado para redes sociales. Esta skill conoce las matrices de
-  copywriting (AIDA, PAS, Hook), las specs técnicas de cada plataforma, y produce
-  HTMLs que funcionan perfectamente en el pipeline de grabación SocialPublisher.
+  contenido visual con objetivo de venta o conversión.
 ---
 
 # HTML Ads — Creador de Publicidades Animadas (Claude Code)
 
-Los HTMLs que crea esta skill son **fuente de video**, no páginas web. Van a ser:
-1. Grabados por el sistema SocialPublisher
-2. Convertidos a MP4 (1080x1920, 9:16, H.264)
-3. Publicados en redes sociales
+## Qué es esto
+
+Publicidades animadas para redes sociales. El objetivo es que el espectador haga algo: comprar, seguir, visitar, contactar.
+
+El HTML va a ser grabado por SocialPublisher y convertido a MP4 (1080×1920, H.264).
 
 ---
 
-## Sistema de Contextos por App
+## Diferencia con html-contenido
 
-### Dónde están los contextos
+| | html-ads | html-contenido |
+|---|---|---|
+| Objetivo | Que haga algo (comprar, seguir) | Que aprenda, guarde o comparta |
+| Tono | Persuasivo, urgente | Útil, cercano, experto |
+| CTA | Directo a la acción | Invitar a interactuar |
 
-La carpeta raíz donde se ejecuta Claude Code contiene subcarpetas por producto:
+---
+
+## Sistema de Contextos
+
+### Estructura de carpetas
 
 ```
-context_ptojects/          ← carpeta raíz (el usuario abre la terminal desde acá)
+context_ptojects/
 ├── ControlAudit/
-│   ├── info.md            ← descripción, beneficios, público objetivo
-│   ├── colores.md         ← paleta de marca, fuentes
-│   ├── capturas/          ← imágenes, screenshots, logos
-│   └── ejemplos_ads/      ← HTMLs anteriores de referencia
+│   ├── info.md        ← qué hace la app, público, beneficios
+│   ├── colores.md     ← paleta y fuentes de marca
+│   ├── capturas/      ← screenshots, logos
+│   └── ejemplos_ads/  ← trabajos anteriores (referencia de estilo)
 ├── ControlDoc/
-│   └── ...
 └── [OtroProyecto]/
-    └── ...
 ```
 
-### Si el usuario NO dice qué app quiere
+### Si el usuario NO dice qué app
+Listar subcarpetas con `ls` / `dir`, mostrar la lista y preguntar cuál.
 
-1. Listar subcarpetas disponibles con: `ls` o `dir` en la carpeta actual
-2. Mostrar la lista al usuario y preguntar: *"¿Para cuál de estas apps querés el ad?"*
-3. Esperar respuesta antes de continuar
+### Si el usuario SÍ dice el nombre
+Ir directo a leer el contexto sin preguntar.
 
-### Si el usuario SÍ dice el nombre de la app
+### Cómo leer el contexto
+1. `Read` en cada `.md` y `.txt` de la carpeta del producto
+2. `LS` en `capturas/` para ver qué imágenes hay
+3. Revisar `ejemplos_ads/` para entender el estilo visual anterior
 
-Ir directo a leer el contexto. No preguntar cuál app.
+Con eso, entender: qué hace el producto, para quién, qué problemas resuelve, colores y estilo de marca, qué se comunicó antes.
 
-### Cómo leer el contexto (Claude Code)
+### Preguntas después de leer el contexto
 
-Cuando se sabe qué app es, hacer esto **antes de cualquier otra cosa**:
+Solo las que falten:
+1. **¿Sobre qué funcionalidad/tema querés el ad?** → sugerir opciones basadas en lo leído
+2. **¿Para qué plataforma?** → Instagram / LinkedIn / Facebook / X
+3. **¿Cuántos segundos?** → Default: 15s Instagram, 20s LinkedIn
 
-1. **Leer archivos de texto** → usar `Read` en cada `.md` y `.txt` de la carpeta
-2. **Ver qué imágenes hay** → usar `LS` en la subcarpeta `capturas/` (no hace falta abrirlas todas)
-3. **Revisar ejemplos anteriores** → leer HTMLs en `ejemplos_ads/` si existen
-4. Con todo eso, construir mentalmente:
-   - Qué hace el producto
-   - A quién va dirigido
-   - Qué problemas resuelve
-   - Colores y estilo de marca
-   - Qué se comunicó antes (para no repetir o mejorar)
-
-### Preguntas DESPUÉS de leer el contexto
-
-Solo estas (no más):
-
-1. **¿Sobre qué funcionalidad/tema querés el ad?**
-   - Mostrar las funcionalidades detectadas en el contexto como opciones
-   - Ej: *"Encontré: auditorías automáticas, reportes en tiempo real, alertas. ¿Sobre cuál?"*
-
-2. **¿Para qué plataforma?** (si no lo dijo) → Instagram / LinkedIn / Facebook / X
-
-3. **¿Cuántos segundos?** (solo si no está claro) → Default: 15s Instagram, 20s LinkedIn
-
-Si el usuario ya respondió algo en su mensaje inicial, no volver a preguntar.
+Si el usuario ya respondió algo, no volver a preguntar.
 
 ### Si la carpeta no existe o está vacía
-
-Decirle:
-> *"No encontré contexto para [NombreApp]. Podés crear la carpeta con un info.md, o contame vos directamente qué querés comunicar."*
-
-Y continuar con el flujo normal del Paso 1.
+Decirle que no hay contexto y continuar preguntando lo esencial.
 
 ---
 
-## Paso 1: Entender el pedido (sin contexto de app)
+## Matrices de copywriting — elegí la que mejor encaje
 
-**Preguntas esenciales:**
-- ¿Qué producto/servicio/marca se anuncia?
-- ¿Plataforma destino? (Instagram, LinkedIn, Facebook, X)
-- ¿Qué acción queremos que haga el espectador?
-- ¿Cuántos segundos? (default: 15s Instagram, 20s LinkedIn)
+Son frameworks de referencia, no recetas con tiempos fijos. Claude decide la duración de cada parte según el contenido.
 
-**Opcionales** (si no las menciona, tomá decisiones vos):
-- ¿Colores de marca o elegimos?
-- ¿El texto lo provee o lo generamos?
-- ¿Hay imágenes o solo texto/formas?
-- ¿Estilo visual? (minimalista, bold, elegante, vibrante)
+**AIDA** — cuando el producto necesita explicación o la audiencia no lo conoce
+- Atención → Hook impactante que para el scroll
+- Interés → Qué hace y qué problema resuelve
+- Deseo → Beneficio concreto o prueba social
+- Acción → CTA claro y directo
 
-Si hay suficiente contexto, arrancá directo sin preguntar.
+**PAS** — cuando hay un pain point muy claro
+- Problema → Nombrar el dolor del usuario
+- Agitación → Consecuencias de no resolverlo
+- Solución → El producto como salida + CTA
 
----
+**Hook-first** — cuando el objetivo es retención máxima desde el primer segundo
+- Hook → Afirmación polémica o pregunta poderosa
+- Revelación → La respuesta o valor prometido
+- CTA → Acción específica
 
-## Paso 2: Elegir la matriz de copywriting
-
-### AIDA — el estándar
-Usar cuando: el producto necesita explicación o la audiencia no lo conoce
-```
-Atención (0-3s)   → Hook visual/textual impactante
-Interés (3-10s)   → Qué hace / qué problema resuelve
-Deseo (10-18s)    → Beneficio concreto o prueba social
-Acción (18-25s)   → CTA claro y directo
-```
-
-### PAS — para un pain point claro
-```
-Problema (0-4s)   → Nombrar el dolor del usuario
-Agitación (4-12s) → Consecuencias de no resolverlo
-Solución (12-25s) → El producto como salida + CTA
-```
-
-### Hook-first — scroll stopper
-Usar cuando: el objetivo es retención máxima en los primeros 3s
-```
-Hook (0-3s)        → Afirmación polémica o pregunta poderosa
-Revelación (3-15s) → La respuesta/valor prometido
-CTA (15-20s)       → Acción específica
-```
+Si ninguna encaja perfectamente, combiná o inventá la estructura que mejor sirva al mensaje.
 
 ---
 
-## Paso 3: Specs técnicas por plataforma
+## Reglas técnicas — NO negociables
 
-| Plataforma | Resolución | Duración recomendada | Estilo |
-|------------|------------|----------------------|--------|
-| Instagram Reels | 1080×1920px | 15–30s | Bold, dinámico, hook en 1.5s |
-| Facebook Reels | 1080×1920px | 15–30s | Similar a Instagram |
-| LinkedIn | 1080×1920px | 15–45s | Profesional, legible |
-| X / Twitter | 1080×1920px | hasta 2min 20s | Directo, conciso |
-
-**Siempre:**
-- Canvas: 1080×1920px sin excepción
-- Fuentes: Google Fonts o system fonts (nunca fuentes locales)
-- Animaciones: usar `transform` y `will-change: transform`
-- Sin audio en el HTML
-- Zona segura: no poner texto en los primeros ni últimos 150px de alto
+- **Dimensiones:** exactamente 1080×1920px, siempre
+- **Señal de fin:** incluir SIEMPRE al final del script:
+  ```javascript
+  setTimeout(() => {
+    window.parent.postMessage({ type: "gsd:done" }, "*");
+  }, DURACION_MS);
+  ```
+  Sin esta señal el grabador no sabe cuándo cortar.
+- **Zona segura:** no poner texto en los primeros ni últimos 150px de alto
+- **Sin assets locales:** solo Google Fonts, SVG inline o emojis
+- **Sin audio:** lo maneja el sistema de grabación
+- **Fuentes:** solo Google Fonts o system fonts
 
 ---
 
-## Paso 4: Estructura del HTML
+## Libertad creativa — acá Claude decide
+
+**Diseño:** Respetá los colores de marca del contexto leído. El resto — tipografía, layout, animaciones, ritmo visual — elegilo para que el mensaje impacte y se entienda rápido. En publicidad, urgencia y claridad son lo primero.
+
+**Duración:** La necesaria para que el mensaje llegue completo sin perder al espectador. Ni tan corto que quede incompleto, ni tan largo que aburra.
+
+**Estilo visual:** Bold, elegante, minimalista, vibrante — lo que mejor represente la marca y enganche a su audiencia.
+
+**CTA:** Que sea claro, directo y aparezca al final. El espectador tiene que saber exactamente qué hacer después de ver el ad.
+
+---
+
+## Estructura base del HTML
 
 ```html
 <!DOCTYPE html>
@@ -165,24 +139,22 @@ CTA (15-20s)       → Acción específica
       width: 1080px;
       height: 1920px;
       overflow: hidden;
-      background: [color];
+      background: [color de marca];
       font-family: '[Fuente]', sans-serif;
     }
-    /* Elementos con position: absolute */
-    /* @keyframes para animaciones */
-    /* Estados iniciales: opacity: 0 */
+    /* El resto del diseño es libre */
   </style>
 </head>
 <body>
 
-  <!-- Elementos del anuncio aquí -->
+  <!-- Contenido animado acá -->
 
   <script>
-    const DURACION_MS = [duración en ms];
+    const DURACION_MS = [duración total en ms];
 
-    // Lógica de animación JS si hace falta
+    // Animaciones y lógica acá
 
-    // ⚠️ SEÑAL DE FIN — NUNCA omitir
+    // ⚠️ OBLIGATORIO — nunca omitir
     setTimeout(() => {
       window.parent.postMessage({ type: "gsd:done" }, "*");
     }, DURACION_MS);
@@ -191,88 +163,55 @@ CTA (15-20s)       → Acción específica
 </html>
 ```
 
-> ⚠️ La señal `gsd:done` es crítica. Sin ella el grabador no sabe cuándo cortar y usa 60s de fallback.
-
 ---
 
-## Paso 5: Principios de diseño para video
-
-**Tipografía:**
-- Mínimo 60px para texto secundario, 100px+ para headlines
-- Alto contraste siempre
-- Máximo 2 fuentes
-- Máximo 8 palabras por pantalla en el hook
-
-**Colores:**
-- Paleta de 2-3 colores
-- Un color de acento para el CTA
-- Sin degradados complejos (se pixelan al comprimir)
-
-**Animaciones:**
-- Entradas: `fadeIn + translateY` o `scaleIn`
-- Timing: 0.4s–0.8s por transición
-- `ease-out` para entradas, `ease-in` para salidas
-- Esperar 0.3s entre elementos secuenciales
-
-**Evitar:**
-- Rotaciones 3D complejas
-- Muchos elementos a la vez
-- Texto pequeño
-- Fondos con mucho ruido
-
----
-
-## Paso 6: Dónde guardar el archivo HTML generado
-
-Guardar el HTML en la carpeta del proyecto correspondiente:
+## Dónde guardar
 
 ```
 context_ptojects/
-└── ControlAudit/
+└── [Producto]/
     └── ejemplos_ads/
-        └── controlaudit-hook-instagram-v1.html   ← acá
+        ├── [producto]-[matriz]-[plataforma]-v[n].html
+        └── caption-[tema].txt
 ```
-
-Nombre sugerido: `[producto]-[matriz]-[plataforma]-v[número].html`
 
 ---
 
-## Paso 7: Caption sugerido
+## Caption sugerido
 
-Junto con el HTML, generar el caption para cada plataforma:
+Generar junto con el HTML:
 
 ```
 === INSTAGRAM / FACEBOOK ===
-[Caption hasta 2200 chars. Con emojis y hashtags al final]
+[Hasta 2200 chars. Con emojis y hashtags al final]
 
 === LINKEDIN ===
-[Caption profesional hasta 3000 chars. Sin hashtags agresivos]
+[Hasta 3000 chars. Profesional, sin hashtags agresivos]
 
 === X / TWITTER ===
-[Caption hasta 257 chars. Directo]
+[Hasta 257 chars. Directo]
 ```
 
-Guardar como `caption-[nombre-del-ad].txt` en la misma carpeta del HTML.
+Guardar como `caption-[nombre-del-ad].txt` en la misma carpeta.
 
 ---
 
-## Entregables por cada pedido
+## Entregables
 
-1. **Archivo HTML** guardado en la carpeta del proyecto
-2. **Caption .txt** con texto para cada plataforma
-3. **Resumen breve**: duración | resolución | matriz usada
+1. **HTML** guardado en la carpeta del producto
+2. **Caption .txt** para cada plataforma relevante
+3. **Una línea de resumen:** duración | matriz usada | plataforma
 
 ---
 
-## Checklist interno antes de entregar
+## Checklist antes de entregar
 
-- [ ] Dimensiones exactas: 1080×1920px
+- [ ] 1080×1920px exacto
 - [ ] Señal `gsd:done` presente con timeout correcto
-- [ ] Hook en los primeros 1.5–3s
-- [ ] Texto legible (tamaño y contraste)
-- [ ] Matriz de copywriting visible en el flujo
-- [ ] Sin assets locales (imágenes externas o data:base64 inline)
+- [ ] Sin texto en los primeros/últimos 150px
+- [ ] Sin assets locales
 - [ ] Fuentes de Google Fonts o system fonts
+- [ ] Hook impactante al inicio
 - [ ] CTA claro al final
 - [ ] Caption generado
-- [ ] Colores/estilo respetan la marca del contexto leído
+- [ ] Colores respetan la marca del contexto leído
