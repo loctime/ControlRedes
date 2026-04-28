@@ -31,7 +31,12 @@
 2. Sending "publica lo nuevo" to the Telegram bot causes the server to respond with a list of pending HTML files and begin the pipeline sequence — verified by bot reply showing filenames.
 3. After a simulated publish cycle, each processed HTML file is moved to `publicaciones-anteriores/` with a corresponding `.meta.json` file containing date, platform list, status per platform, and video specs — verified by inspecting the archive folder.
 4. The Telegram bot sends incremental status messages during the pipeline ("Grabando post.html...", "Publicando en Instagram...", "Completado") — verified by reading the Telegram chat log.
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Servidor Express + chokidar watcher + endpoints REST (GET /api/status, /api/files, /api/files/:filename)
+- [ ] 01-02-PLAN.md — Bot Telegram: long-polling, comando "publica lo nuevo", guardias (vacío/activo/chat), status updates
+- [ ] 01-03-PLAN.md — File lifecycle: readCaption, markComplete (archivado + .meta.json), runPipeline con Telegram updates
 
 ### Phase 2: Extension Skeleton
 **Goal:** The Chrome MV3 extension loads without errors, persists all pipeline state across Service Worker restarts via `chrome.storage.local`, communicates with the local server, and provides a minimal popup for folder selection and login verification.
@@ -72,10 +77,11 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Local Server Foundation | 0/0 | Not started | - |
+| 1. Local Server Foundation | 0/3 | Not started | - |
 | 2. Extension Skeleton | 0/0 | Not started | - |
 | 3. Recording Pipeline | 0/0 | Not started | - |
 | 4. Social Publishing | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-04-27*
+*Updated: 2026-04-28 — Phase 1 plans created (3 plans, 3 waves)*
