@@ -215,3 +215,22 @@ Guardar como `caption-[nombre-del-ad].txt` en la misma carpeta.
 - [ ] CTA claro al final
 - [ ] Caption generado
 - [ ] Colores respetan la marca del contexto leído
+## Audio embebido (estandar ControlRedes)
+
+- Cuando el usuario pida sonido, generar audio por codigo en el HTML (Web Audio API).
+- Exportar ese audio a base64 (preferido: `audio/wav`).
+- Antes de cerrar, setear:
+  - `window.__GSD_EMBED_AUDIO_BASE64 = <base64>`
+  - `window.__GSD_EMBED_AUDIO_MIME = "audio/wav"`
+- Luego enviar:
+  - `window.parent.postMessage({ type: "gsd:done" }, "*")`
+- Si no se setean esos campos, el pipeline exporta silencio.
+
+Snippet minimo:
+
+```javascript
+const wavBase64 = buildAudioBase64Somehow();
+window.__GSD_EMBED_AUDIO_BASE64 = wavBase64;
+window.__GSD_EMBED_AUDIO_MIME = "audio/wav";
+window.parent.postMessage({ type: "gsd:done" }, "*");
+```

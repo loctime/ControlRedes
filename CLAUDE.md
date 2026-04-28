@@ -78,6 +78,20 @@ publicaciones-anteriores/
 
 ## Development Notes
 
+## Embedded Audio Contract (HTML -> MP4)
+
+- Preferred audio mode is now embedded audio generated in HTML (Web Audio API), not external sidecar files.
+- Each animated HTML that wants sound must:
+  1. Generate audio in JS (for example with Web Audio API).
+  2. Encode/export that audio as base64 (`audio/wav` recommended).
+  3. Set:
+     - `window.__GSD_EMBED_AUDIO_BASE64 = <base64>`
+     - `window.__GSD_EMBED_AUDIO_MIME = "audio/wav"`
+  4. Only after setting those values, send:
+     - `window.parent.postMessage({ type: "gsd:done" }, "*")`
+- If those fields are missing, renderer falls back to silent audio.
+- Keep existing `gsd:done` timing contract unchanged.
+
 - **Phase 3 (Recording)** is highest-risk: prototype `chrome.tabCapture.getMediaStreamId` + Offscreen Document before implementing. Seven open questions documented in `.planning/research/STACK.md`.
 - **Phase 4 (Publishing)** requires a throwaway Instagram/LinkedIn account for testing before touching production accounts.
 - **Top pitfalls** (full list in `.planning/research/PITFALLS.md`): SW killed mid-recording, codec mismatch on platform upload, platform UI selector fragility, animation-end detection unreliable, Telegram polling gaps.
