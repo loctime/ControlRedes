@@ -80,7 +80,18 @@ Plans:
 2. Loading a test HTML that never emits `gsd:done` produces an MP4 that stops at the configured timeout (default 60s) - verified by file duration and absence of pipeline hang.
 3. The output MP4 is H.264 + AAC at 1080x1920 resolution - verified with `ffprobe` or a video player showing metadata.
 4. The pipeline processes all HTMLs in the queue sequentially without manual intervention - verified by dropping three HTML files and observing three MP4 outputs.
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+
+**Wave 1**
+- [x] 03-01-PLAN.md - Offscreen foundation: permisos, documento offscreen, contrato SW<->Offscreen y estado persistente de sesion
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 03-02-PLAN.md - Control de duracion: `gsd:done`, timeout fallback configurable y post-buffer con limpieza robusta
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 03-03-PLAN.md - Transcoding WebM->MP4 con ffmpeg.wasm, procesamiento secuencial de cola y reporte `video-ready`
 
 ### Phase 4: Social Publishing
 **Goal:** Each transcoded MP4 publishes to Instagram and LinkedIn sequentially using the active Chrome session, captions from `.caption.txt` are included in each post, and a single platform failure does not abort publishing to the remaining platforms.
@@ -100,9 +111,9 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Local Server Foundation | 3/3 | Verified | 2026-04-28 |
 | 2. Extension Skeleton | 3/3 | Verified | 2026-04-28 |
-| 3. Recording Pipeline | 0/0 | Not started | - |
+| 3. Recording Pipeline | 3/3 | Executed | - |
 | 4. Social Publishing | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-04-27*
-*Updated: 2026-04-28 - Phase 2 verified in Chrome*
+*Updated: 2026-04-28 - Phase 3 plans defined*

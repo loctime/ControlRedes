@@ -70,3 +70,9 @@ export async function setServerStatus(serverPatch) {
     server: serverPatch,
   });
 }
+
+export async function setRecordingSession(recordingSessionPatch) {
+  return mergeState({
+    recordingSession: recordingSessionPatch,
+  });
+}

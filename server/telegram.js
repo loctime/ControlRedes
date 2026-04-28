@@ -29,7 +29,7 @@ function initBot(state, onTrigger) {
       return;
     }
 
-    if (state.pipeline === 'active') {
+    if (state.pipeline !== 'idle') {
       await bot.sendMessage(fromChatId, 'Ya hay un pipeline activo');
       return;
     }
@@ -43,7 +43,7 @@ function initBot(state, onTrigger) {
       return;
     }
 
-    state.pipeline = 'active';
+    state.pipeline = 'server_rendering';
     state.pendingFiles = [...files];
     state.activeFile = null;
 

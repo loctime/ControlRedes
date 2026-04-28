@@ -2,9 +2,11 @@
 
 const fs = require('fs');
 const path = require('path');
+const { renderHtmlToVideo } = require('./renderer');
 
 const WATCH_DIR = path.resolve(__dirname, '..', 'nuevas-publicaciones');
 const ARCHIVE_DIR = path.resolve(__dirname, '..', 'publicaciones-anteriores');
+const VIDEOS_DIR = path.resolve(__dirname, '..', 'videos-generados');
 
 function readCaption(filename) {
   const basename = filename.replace(/\.html$/i, '');
@@ -49,30 +51,44 @@ function markComplete(filename, platforms, status, videoSpecs) {
 }
 
 async function runPipeline(files, state, sendStatusFn, bot, chatId) {
+  if (!Array.isArray(files) || files.length === 0) {
+    await sendStatusFn(bot, chatId, 'No hay archivos nuevos');
+    state.pipeline = 'idle';
+    state.activeFile = null;
+    return;
+  }
+
+  await sendStatusFn(bot, chatId, `Pipeline activo: ${files.length} archivo(s) en cola.`);
+
   try {
     for (const filename of files) {
       state.activeFile = filename;
-
       await sendStatusFn(bot, chatId, `Grabando ${filename}...`);
-      await sendStatusFn(bot, chatId, 'Publicando en Instagram...');
-      await sendStatusFn(bot, chatId, 'Publicando en LinkedIn...');
 
-      const placeholderSpecs = {
+      const basename = filename.replace(/\.html$/i, '');
+      const outputPath = path.join(VIDEOS_DIR, `${basename}.mp4`);
+      const htmlUrl = `http://localhost:3333/api/files/${encodeURIComponent(filename)}`;
+
+      const specs = await renderHtmlToVideo({
+        htmlUrl,
+        outputPath,
         width: 1080,
         height: 1920,
         fps: 30,
-        codec: 'h264',
-        duration: 0,
-      };
+        timeoutSeconds: 60,
+        bufferSeconds: 1.5,
+      });
 
-      markComplete(filename, ['instagram', 'linkedin'], 'success', placeholderSpecs);
       state.pendingFiles = state.pendingFiles.filter((file) => file !== filename);
+      markComplete(filename, ['instagram', 'linkedin'], 'success', specs);
+
+      await sendStatusFn(bot, chatId, `Video listo: ${path.basename(outputPath)}`);
     }
 
     await sendStatusFn(bot, chatId, 'Completado ✓');
-  } catch (err) {
-    console.error('[pipeline] Error durante pipeline:', err.message);
-    await sendStatusFn(bot, chatId, `Error en pipeline: ${err.message}`);
+  } catch (error) {
+    await sendStatusFn(bot, chatId, `Error en pipeline: ${error.message}`);
+    throw error;
   } finally {
     state.pipeline = 'idle';
     state.activeFile = null;
