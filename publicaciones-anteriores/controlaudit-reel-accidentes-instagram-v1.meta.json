@@ -1,0 +1,15 @@
+{
+  "date": "2026-04-28T20:57:01.861Z",
+  "platforms": [
+    "instagram",
+    "linkedin"
+  ],
+  "status": "success",
+  "videoSpecs": {
+    "width": 300,
+    "height": 300,
+    "fps": 30,
+    "codec": "h264+aac",
+    "duration": 28
+  }
+}

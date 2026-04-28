@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080">
+  <title>ControlAudit — Capacitaciones Vencidas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: #0a1828;
+      font-family: 'Inter', sans-serif;
+      position: relative;
+    }
+
+    canvas#bg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1080px;
+      height: 1920px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1080px;
+      height: 1920px;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.45s ease;
+    }
+
+    /* ============ ANIMATIONS ============ */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(90px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-90px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bounceIn {
+      0%   { opacity: 0; transform: scale(0.1); }
+      55%  { opacity: 1; transform: scale(1.18); }
+      75%  { transform: scale(0.92); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-160px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes stamp {
+      0%   { opacity: 0; transform: scale(4) rotate(-12deg); }
+      55%  { opacity: 1; transform: scale(0.88) rotate(-8deg); }
+      75%  { transform: scale(1.06) rotate(-8deg); }
+      100% { opacity: 1; transform: scale(1) rotate(-8deg); }
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0) rotate(0); }
+      15%  { transform: translateX(-22px) rotate(-2deg); }
+      30%  { transform: translateX(22px) rotate(2deg); }
+      45%  { transform: translateX(-16px) rotate(-1deg); }
+      60%  { transform: translateX(16px) rotate(1deg); }
+      75%  { transform: translateX(-10px); }
+      90%  { transform: translateX(10px); }
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%     { transform: translateY(-18px); }
+    }
+    @keyframes pulseGlow {
+      0%,100% { box-shadow: 0 0 40px rgba(60,181,74,0.4); }
+      50%     { box-shadow: 0 0 100px rgba(60,181,74,0.9), 0 0 200px rgba(60,181,74,0.3); }
+    }
+    @keyframes warningPulse {
+      0%,100% { color: #FFC107; }
+      50%     { color: #FF8C00; }
+    }
+    @keyframes bgFlashRed {
+      0%,100% { background: #0a1828; }
+      50%     { background: #1f0810; }
+    }
+    @keyframes bgFlashGreen {
+      0%,100% { background: #0a1828; }
+      50%     { background: #081f0d; }
+    }
+    @keyframes scaleBarIn {
+      from { transform: scaleX(0); transform-origin: left; opacity: 0; }
+      to   { transform: scaleX(1); transform-origin: left; opacity: 1; }
+    }
+
+    .anim-fadeInUp    { animation: fadeInUp    0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .anim-fadeInDown  { animation: fadeInDown  0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .anim-bounceIn    { animation: bounceIn    0.8s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+    .anim-slideInLeft { animation: slideInLeft 0.65s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .anim-stamp       { animation: stamp       0.85s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+    .anim-shake       { animation: shake       0.65s ease; }
+    .anim-float       { animation: float       3.2s ease-in-out infinite; }
+    .anim-pulseGlow   { animation: pulseGlow   2s ease-in-out infinite; }
+    .anim-warnPulse   { animation: warningPulse 1.2s ease-in-out infinite; }
+
+    /* ============ SCENE 1 — HOOK ============ */
+    #s1 { padding: 200px 90px; gap: 50px; }
+
+    #s1-tag {
+      font-size: 40px;
+      font-weight: 700;
+      color: #3CB54A;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      text-align: center;
+      opacity: 0;
+    }
+    #s1-question {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 84px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-align: center;
+      line-height: 1.12;
+      opacity: 0;
+    }
+    .counter-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+    }
+    #s1-num {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 300px;
+      font-weight: 900;
+      color: #DC3545;
+      line-height: 1;
+    }
+    #s1-numlabel {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 48px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    /* ============ SCENE 2 — VENCIDA ============ */
+    #s2 { padding: 200px 90px; gap: 70px; }
+
+    #s2-cal { opacity: 0; }
+    #s2-stamp {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 118px;
+      font-weight: 900;
+      color: #DC3545;
+      border: 16px solid #DC3545;
+      padding: 24px 64px;
+      border-radius: 18px;
+      background: rgba(220,53,69,0.1);
+      letter-spacing: 6px;
+      opacity: 0;
+    }
+    #s2-punchline {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 76px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-align: center;
+      opacity: 0;
+    }
+
+    /* ============ SCENE 3 — RISKS ============ */
+    #s3 { padding: 200px 80px; gap: 0; }
+
+    #s3-header {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 58px;
+      font-weight: 900;
+      color: #FFC107;
+      text-align: center;
+      opacity: 0;
+      margin-bottom: 48px;
+      width: 100%;
+    }
+    .risk-card {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 42px;
+      background: rgba(255,255,255,0.055);
+      border-radius: 26px;
+      padding: 44px 56px;
+      margin-bottom: 32px;
+      opacity: 0;
+      border-left: 10px solid #DC3545;
+    }
+    .risk-card.warn { border-color: #FFC107; }
+    .risk-emoji { font-size: 78px; flex-shrink: 0; width: 90px; text-align: center; }
+    .risk-info h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 50px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.2;
+    }
+    .risk-info p {
+      font-size: 34px;
+      color: rgba(255,255,255,0.58);
+      margin-top: 8px;
+      line-height: 1.35;
+    }
+
+    /* ============ SCENE 4 — SOLUTION ============ */
+    #s4 { padding: 200px 90px; gap: 56px; }
+
+    .solution-orb {
+      width: 350px;
+      height: 350px;
+      background: linear-gradient(135deg, #3CB54A, #28A745);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      flex-shrink: 0;
+    }
+    #s4-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 88px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-align: center;
+      line-height: 1.15;
+      opacity: 0;
+    }
+    .feat-list { width: 100%; display: flex; flex-direction: column; gap: 28px; opacity: 0; }
+    .feat-item {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      background: rgba(60,181,74,0.1);
+      border-radius: 20px;
+      padding: 34px 50px;
+      border-left: 8px solid #3CB54A;
+    }
+    .feat-item span {
+      font-size: 46px;
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    /* ============ SCENE 5 — CTA ============ */
+    #s5 { padding: 200px 90px; gap: 44px; }
+
+    #s5-brand {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 52px;
+      font-weight: 900;
+      color: #3CB54A;
+      letter-spacing: 5px;
+      opacity: 0;
+    }
+    #s5-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 116px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-align: center;
+      line-height: 1.1;
+      opacity: 0;
+    }
+    #s5-desc {
+      font-size: 46px;
+      color: rgba(255,255,255,0.68);
+      text-align: center;
+      line-height: 1.45;
+      opacity: 0;
+      max-width: 920px;
+    }
+    #s5-cta {
+      background: linear-gradient(135deg, #3CB54A, #28A745);
+      padding: 56px 114px;
+      border-radius: 34px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 58px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-align: center;
+      opacity: 0;
+      box-shadow: 0 24px 70px rgba(60,181,74,0.45);
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<!-- SCENE 1: Hook -->
+<div class="scene" id="s1">
+  <div id="s1-tag">⚠️ Dato que puede costarte caro</div>
+  <div id="s1-question">¿Cuántas capacitaciones de tu empresa están...</div>
+  <div class="counter-block" id="counter-block">
+    <div id="s1-num">0</div>
+    <div id="s1-numlabel">Vencidas ahora mismo</div>
+  </div>
+</div>
+
+<!-- SCENE 2: VENCIDA stamp -->
+<div class="scene" id="s2">
+  <div id="s2-cal">
+    <svg width="560" height="500" viewBox="0 0 560 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="70" width="520" height="410" rx="36" fill="#1A3557" stroke="rgba(255,255,255,0.12)" stroke-width="3"/>
+      <rect x="20" y="70" width="520" height="115" rx="36" fill="#1A3557"/>
+      <rect x="20" y="145" width="520" height="40" fill="#1A3557"/>
+      <rect x="158" y="30" width="30" height="88" rx="15" fill="#3CB54A"/>
+      <rect x="372" y="30" width="30" height="88" rx="15" fill="#3CB54A"/>
+      <text x="280" y="150" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="56" font-weight="900" fill="white">AGOSTO 2025</text>
+      <!-- X marks across the calendar -->
+      <text x="90"  y="265" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="188" y="265" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="286" y="265" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="384" y="265" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="482" y="265" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="90"  y="360" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="188" y="360" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="286" y="360" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="384" y="360" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="482" y="360" text-anchor="middle" font-size="44" fill="#3a4a5a">22</text>
+      <text x="90"  y="455" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="188" y="455" text-anchor="middle" font-size="58" fill="#DC3545">✗</text>
+      <text x="286" y="455" text-anchor="middle" font-size="44" fill="#3a4a5a">28</text>
+      <text x="384" y="455" text-anchor="middle" font-size="44" fill="#3a4a5a">29</text>
+      <text x="482" y="455" text-anchor="middle" font-size="44" fill="#3a4a5a">30</text>
+    </svg>
+  </div>
+  <div id="s2-stamp">VENCIDA</div>
+  <div id="s2-punchline">Y nadie lo sabe.</div>
+</div>
+
+<!-- SCENE 3: Risks -->
+<div class="scene" id="s3">
+  <div id="s3-header">🚨 Los riesgos son REALES</div>
+
+  <div class="risk-card" id="r1">
+    <div class="risk-emoji">⚖️</div>
+    <div class="risk-info">
+      <h3>Accidentes sin respaldo legal</h3>
+      <p>Sin certificación vigente, la empresa responde</p>
+    </div>
+  </div>
+
+  <div class="risk-card warn" id="r2">
+    <div class="risk-emoji">💸</div>
+    <div class="risk-info">
+      <h3>Multas por incumplimiento</h3>
+      <p>SRT puede inspeccionarte sin aviso</p>
+    </div>
+  </div>
+
+  <div class="risk-card warn" id="r3">
+    <div class="risk-emoji">👷</div>
+    <div class="risk-info">
+      <h3>Empleados sin formación vigente</h3>
+      <p>Operando maquinaria y materiales de riesgo</p>
+    </div>
+  </div>
+
+  <div class="risk-card" id="r4">
+    <div class="risk-emoji">📋</div>
+    <div class="risk-info">
+      <h3>Sin evidencia ante una auditoría</h3>
+      <p>No podés demostrar cumplimiento normativo</p>
+    </div>
+  </div>
+</div>
+
+<!-- SCENE 4: Solution -->
+<div class="scene" id="s4">
+  <div class="solution-orb" id="s4-orb">
+    <span style="font-size:170px; line-height:1;">✅</span>
+  </div>
+  <div id="s4-title">ControlAudit te avisa antes que venza</div>
+  <div class="feat-list" id="s4-feats">
+    <div class="feat-item"><span>🔔 Alertas automáticas de vencimiento</span></div>
+    <div class="feat-item"><span>📅 Plan anual de capacitaciones</span></div>
+    <div class="feat-item"><span>✅ Historial listo para cualquier auditoría</span></div>
+  </div>
+</div>
+
+<!-- SCENE 5: CTA -->
+<div class="scene" id="s5">
+  <div id="s5-brand">CONTROLAUDIT</div>
+  <div id="s5-title">Guardá esto 👇</div>
+  <div id="s5-desc">Antes de que una capacitación vencida te cueste una multa — o algo peor</div>
+  <div id="s5-cta">🎯 Empezá gratis hoy</div>
+</div>
+
+<script>
+const DURACION_MS = 27000;
+
+// =============================================
+// PARTICLE SYSTEM
+// =============================================
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+canvas.width = 1080;
+canvas.height = 1920;
+
+class Particle {
+  constructor(x, y, type) {
+    this.type = type || 'ambient';
+    this.x = (x !== undefined) ? x : Math.random() * 1080;
+    this.y = (y !== undefined) ? y : Math.random() * 1920;
+
+    if (this.type === 'ambient') {
+      this.vx = (Math.random() - 0.5) * 0.7;
+      this.vy = (Math.random() - 0.5) * 0.7;
+      this.r  = Math.random() * 3 + 1;
+      this.alpha = Math.random() * 0.22 + 0.05;
+      this.color = ['#3CB54A','#1976D2','#FFFFFF'][Math.floor(Math.random()*3)];
+      this.life = Infinity;
+    } else {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 18 + 5;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.r = Math.random() * 9 + 3;
+      this.alpha = 1;
+      this.life = 1;
+      this.decay = Math.random() * 0.024 + 0.014;
+      const palettes = {
+        red:   ['#DC3545','#FF6B35','#FFC107','#FFFFFF'],
+        green: ['#3CB54A','#28A745','#FFFFFF','#FFC107'],
+      };
+      const pal = palettes[this.type] || palettes.green;
+      this.color = pal[Math.floor(Math.random() * pal.length)];
+    }
+  }
+
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    if (this.type === 'ambient') {
+      if (this.x < 0 || this.x > 1080) this.vx *= -1;
+      if (this.y < 0 || this.y > 1920) this.vy *= -1;
+    } else {
+      this.vy += 0.28;
+      this.life -= this.decay;
+      this.alpha = Math.max(0, this.life);
+    }
+  }
+
+  draw() {
+    if (this.alpha <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = this.alpha;
+    ctx.fillStyle = this.color;
+    if (this.type === 'ambient') {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.life * 6);
+      ctx.fillRect(-this.r/2, -this.r/2, this.r, this.r);
+    }
+    ctx.restore();
+  }
+
+  isDead() { return this.type !== 'ambient' && this.life <= 0; }
+}
+
+const particles = [];
+for (let i = 0; i < 65; i++) particles.push(new Particle());
+
+function burst(x, y, type, count) {
+  for (let i = 0; i < count; i++) particles.push(new Particle(x, y, type));
+}
+
+(function loop() {
+  ctx.clearRect(0, 0, 1080, 1920);
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update();
+    particles[i].draw();
+    if (particles[i].isDead()) particles.splice(i, 1);
+  }
+  requestAnimationFrame(loop);
+})();
+
+// =============================================
+// SCENE MANAGER
+// =============================================
+function go(id) {
+  document.querySelectorAll('.scene').forEach(s => {
+    const active = s.id === id;
+    s.style.opacity = active ? '1' : '0';
+    s.style.pointerEvents = active ? 'auto' : 'none';
+  });
+}
+
+function reveal(id, cls, delay) {
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }, delay);
+}
+
+function revealEl(el, cls, delay) {
+  setTimeout(() => {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }, delay);
+}
+
+// =============================================
+// COUNTER ANIMATION
+// =============================================
+function countUp(el, target, ms) {
+  let t0;
+  (function tick(now) {
+    if (!t0) t0 = now;
+    const p = Math.min((now - t0) / ms, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(eased * target);
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = target + '+';
+  })(performance.now());
+}
+
+// =============================================
+// TIMELINE
+// =============================================
+
+// ── SCENE 1 (0–3s) ──────────────────────────
+go('s1');
+reveal('s1-tag',      'anim-fadeInDown', 250);
+reveal('s1-question', 'anim-fadeInUp',   850);
+setTimeout(() => {
+  const cb = document.getElementById('counter-block');
+  cb.classList.add('anim-bounceIn');
+  countUp(document.getElementById('s1-num'), 47, 1300);
+  burst(540, 1100, 'red', 55);
+  document.body.style.animation = 'bgFlashRed 0.7s ease';
+}, 1900);
+
+// ── SCENE 2 (3–7s) ──────────────────────────
+setTimeout(() => {
+  go('s2');
+
+  setTimeout(() => {
+    const cal = document.getElementById('s2-cal');
+    cal.classList.add('anim-zoomIn');
+    // custom zoomIn for cal since it's not in CSS (we add it inline)
+    cal.style.animation = 'bounceIn 0.8s cubic-bezier(0.175,0.885,0.32,1.275) forwards';
+    cal.style.opacity = '1';
+  }, 200);
+
+  setTimeout(() => {
+    const stamp = document.getElementById('s2-stamp');
+    stamp.classList.add('anim-stamp');
+    burst(540, 800, 'red', 90);
+    document.body.style.animation = 'bgFlashRed 0.5s ease';
+    setTimeout(() => {
+      const cal = document.getElementById('s2-cal');
+      cal.classList.add('anim-shake');
+      setTimeout(() => cal.classList.remove('anim-shake'), 700);
+    }, 250);
+  }, 1300);
+
+  reveal('s2-punchline', 'anim-fadeInUp', 2600);
+}, 3000);
+
+// ── SCENE 3 (7–19s) ─────────────────────────
+setTimeout(() => {
+  go('s3');
+  reveal('s3-header', 'anim-fadeInDown',  150);
+  revealEl(document.getElementById('r1'), 'anim-slideInLeft', 550);
+  revealEl(document.getElementById('r2'), 'anim-slideInLeft', 1000);
+  revealEl(document.getElementById('r3'), 'anim-slideInLeft', 1450);
+  revealEl(document.getElementById('r4'), 'anim-slideInLeft', 1900);
+
+  // periodic micro-bursts while risks are visible
+  setTimeout(() => burst(540, 960, 'red', 30), 2400);
+  setTimeout(() => burst(540, 960, 'red', 30), 5500);
+  setTimeout(() => burst(540, 960, 'red', 30), 8500);
+}, 7000);
+
+// ── SCENE 4 (19–24s) ────────────────────────
+setTimeout(() => {
+  go('s4');
+  document.body.style.animation = 'bgFlashGreen 0.8s ease';
+
+  const orb = document.getElementById('s4-orb');
+  orb.classList.add('anim-bounceIn');
+  burst(540, 740, 'green', 160);
+
+  reveal('s4-title', 'anim-fadeInUp', 900);
+
+  setTimeout(() => {
+    const feats = document.getElementById('s4-feats');
+    feats.classList.add('anim-fadeInUp');
+    feats.style.opacity = '1';
+  }, 1700);
+
+  setTimeout(() => {
+    orb.classList.add('anim-float');
+    orb.classList.add('anim-pulseGlow');
+  }, 1200);
+
+  setTimeout(() => burst(540, 740, 'green', 80), 2200);
+}, 19000);
+
+// ── SCENE 5 (24–27s) ────────────────────────
+setTimeout(() => {
+  go('s5');
+  burst(540, 960, 'green', 110);
+
+  reveal('s5-brand', 'anim-fadeInDown', 150);
+  reveal('s5-title', 'anim-bounceIn',   500);
+  reveal('s5-desc',  'anim-fadeInUp',   1000);
+  reveal('s5-cta',   'anim-bounceIn',   1500);
+}, 24000);
+
+// ⚠️ OBLIGATORIO — señal de fin para el grabador
+setTimeout(() => {
+  window.parent.postMessage({ type: "gsd:done" }, "*");
+}, DURACION_MS);
+</script>
+</body>
+</html>

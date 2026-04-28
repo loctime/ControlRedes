@@ -88,7 +88,7 @@ Con el contexto leído, hacer el mínimo de preguntas.
 Los skills indican exactamente qué preguntar en cada caso.
 
 ### Paso 6 — Generar y guardar
-Crear el HTML y guardarlo en `[Producto]/ejemplos_ads/`
+Crear el HTML y guardarlo en `[Producto]/ejemplos_ads/` y en la carpeta `/nuevas-publicaciones/[Producto]/`
 Nombre: `[producto]-[tipo]-[tema]-[plataforma]-v[número].html`
 También guardar el caption como `.txt` en la misma carpeta.
 
