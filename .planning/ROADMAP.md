@@ -6,7 +6,7 @@
 ## Phases
 
 - [x] **Phase 1: Local Server Foundation** - Node.js server handles filesystem, Telegram bot, and file lifecycle
-- [ ] **Phase 2: Extension Skeleton** - Chrome MV3 extension installs, persists state, and connects to the server
+- [x] **Phase 2: Extension Skeleton** - Chrome MV3 extension installs, persists state, and connects to the server
 - [ ] **Phase 3: Recording Pipeline** - HTML files render, record, and transcode to publish-ready MP4
 - [ ] **Phase 4: Social Publishing** - Videos publish to Instagram and LinkedIn via active browser sessions
 
@@ -99,10 +99,10 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Local Server Foundation | 3/3 | Verified | 2026-04-28 |
-| 2. Extension Skeleton | 3/3 | Executed, pending verify | 2026-04-28 |
+| 2. Extension Skeleton | 3/3 | Verified | 2026-04-28 |
 | 3. Recording Pipeline | 0/0 | Not started | - |
 | 4. Social Publishing | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-04-27*
-*Updated: 2026-04-28 - Phase 2 executed (3 plans complete, pending verification)*
+*Updated: 2026-04-28 - Phase 2 verified in Chrome*

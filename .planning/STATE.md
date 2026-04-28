@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase: Phase 2 executed, pending verification
+Phase: Phase 2 verified
 Last updated: 2026-04-28
 
 ## Project Reference
@@ -14,22 +14,22 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 | # | Phase | Status |
 |---|-------|--------|
 | 1 | Local Server Foundation | Verified |
-| 2 | Extension Skeleton | Executed (3/3 plans), pending verify |
+| 2 | Extension Skeleton | Verified |
 | 3 | Recording Pipeline | Not started |
 | 4 | Social Publishing | Not started |
 
 ## Current Position
 
-**Active phase:** Phase 2 - Extension Skeleton
-**Active plan:** Execution complete
-**Progress:** [#---] 1/4 phases complete
+**Active phase:** Phase 3 - Recording Pipeline
+**Active plan:** Not started
+**Progress:** [##--] 2/4 phases complete
 
 ## Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Phases complete | 1/4 |
-| Requirements delivered | 11/23 |
+| Phases complete | 2/4 |
+| Requirements delivered | 12/23 |
 | Plans executed | 6 |
 
 ## Accumulated Context
@@ -45,8 +45,7 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 - Failure isolation: One platform failing must not abort the rest of the pipeline.
 
 ### Open Questions
-- Visual Chrome verification is still pending: load `dist/`, inspect `chrome://extensions`, and confirm popup/service worker behavior in-browser.
-- Direct folder selection from the extension was deferred because the verified Chrome context does not expose `showDirectoryPicker()` for this flow and the server already owns filesystem access.
+- (none)
 
 ### Blockers
 - (none)
@@ -55,7 +54,7 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 
 **To resume work:** Read this file, then read `.planning/ROADMAP.md` for phase details and current plan status.
 
-**Next action:** Run `/gsd-verify-work` to verify Phase 2 in Chrome, especially installability, popup flow, and service worker persistence.
+**Next action:** Run `/gsd-discuss-phase 3` to start the Recording Pipeline phase.
 
 ---
 *State initialized: 2026-04-27*
