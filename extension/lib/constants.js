@@ -8,9 +8,10 @@ export const DEFAULT_PIPELINE_STATE = {
   pendingFiles: [],
   activeFile: null,
   lastStatusAt: null,
-  folderName: null,
-  folderPermission: 'missing',
+  folderName: 'server-managed',
+  folderPermission: 'server_owned',
   folderLastCheckedAt: null,
+  folderError: null,
   loginChecks: {
     instagram: { status: 'unknown', checkedAt: null },
     linkedin: { status: 'unknown', checkedAt: null },

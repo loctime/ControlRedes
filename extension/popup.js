@@ -1,4 +1,3 @@
-import { getStoredHandle, pickFolderHandle, reconnectFolderHandle } from './lib/folder-handle.js';
 import { verifyLogins } from './lib/login-checks.js';
 import { getState, mergeState } from './lib/state.js';
 
@@ -11,8 +10,6 @@ const linkedinStatusEl = document.querySelector('#linkedin-status');
 const loginDetailEl = document.querySelector('#login-detail');
 
 const refreshServerButton = document.querySelector('#refresh-server');
-const pickFolderButton = document.querySelector('#pick-folder');
-const reconnectFolderButton = document.querySelector('#reconnect-folder');
 const checkLoginsButton = document.querySelector('#check-logins');
 
 function setStatusPill(element, label, kind) {
@@ -48,17 +45,8 @@ function renderServer(state) {
 }
 
 function renderFolder(state) {
-  folderNameEl.textContent = state.folderName || 'Ninguna carpeta conectada.';
-
-  if (state.folderPermission === 'granted') {
-    setStatusPill(folderStatusEl, 'Folder ready', 'status-ok');
-  } else if (state.folderPermission === 'prompt') {
-    setStatusPill(folderStatusEl, 'Reconnect folder', 'status-warn');
-  } else if (state.folderPermission === 'missing') {
-    setStatusPill(folderStatusEl, 'Not configured', 'status-unknown');
-  } else {
-    setStatusPill(folderStatusEl, 'Folder unavailable', 'status-error');
-  }
+  folderNameEl.textContent = 'Gestionada por el server local.';
+  setStatusPill(folderStatusEl, 'Server-owned', 'status-ok');
 }
 
 function renderLoginChecks(state) {
@@ -104,55 +92,6 @@ async function refreshServerSnapshot() {
   refreshServerButton.disabled = false;
 }
 
-async function selectFolder() {
-  pickFolderButton.disabled = true;
-  try {
-    const handle = await pickFolderHandle();
-    await mergeState({
-      folderName: handle.name,
-      folderPermission: 'granted',
-      folderLastCheckedAt: new Date().toISOString(),
-    });
-  } finally {
-    pickFolderButton.disabled = false;
-    await render();
-  }
-}
-
-async function reconnectFolder() {
-  reconnectFolderButton.disabled = true;
-  try {
-    const handle = await reconnectFolderHandle();
-    const permission = handle ? await handle.queryPermission({ mode: 'readwrite' }) : 'missing';
-    await mergeState({
-      folderName: handle?.name || null,
-      folderPermission: handle ? permission : 'missing',
-      folderLastCheckedAt: new Date().toISOString(),
-    });
-  } finally {
-    reconnectFolderButton.disabled = false;
-    await render();
-  }
-}
-
-async function bootstrapFolderState() {
-  const handle = await getStoredHandle();
-  if (!handle) {
-    await mergeState({
-      folderName: null,
-      folderPermission: 'missing',
-    });
-    return;
-  }
-
-  const permission = await handle.queryPermission({ mode: 'readwrite' });
-  await mergeState({
-    folderName: handle.name,
-    folderPermission: permission,
-    folderLastCheckedAt: new Date().toISOString(),
-  });
-}
-
 async function runLoginChecks() {
   checkLoginsButton.disabled = true;
   try {
@@ -170,21 +109,18 @@ refreshServerButton.addEventListener('click', () => {
   refreshServerSnapshot().catch((error) => console.error('[popup] refresh failed:', error));
 });
 
-pickFolderButton.addEventListener('click', () => {
-  selectFolder().catch((error) => console.error('[popup] folder pick failed:', error));
-});
-
-reconnectFolderButton.addEventListener('click', () => {
-  reconnectFolder().catch((error) => console.error('[popup] folder reconnect failed:', error));
-});
-
 checkLoginsButton.addEventListener('click', () => {
   runLoginChecks().catch((error) => console.error('[popup] login checks failed:', error));
 });
 
 Promise.all([
   chrome.runtime.sendMessage({ type: 'gsd:ensure-alarm' }),
-  bootstrapFolderState(),
+  mergeState({
+    folderName: 'server-managed',
+    folderPermission: 'server_owned',
+    folderLastCheckedAt: new Date().toISOString(),
+    folderError: null,
+  }),
 ]).finally(() => {
   refreshServerSnapshot()
     .catch(() => {})

@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Phase 2 delivers the first installable Chrome MV3 extension under `extension/` and `dist/`. The extension must install without errors, persist pipeline state in `chrome.storage.local`, connect to the Phase 1 server on `localhost:3333`, and provide a minimal popup for folder selection/reconnection plus login checks for Instagram and LinkedIn.
+Phase 2 delivers the first installable Chrome MV3 extension under `extension/` and `dist/`. The extension must install without errors, persist pipeline state in `chrome.storage.local`, connect to the Phase 1 server on `localhost:3333`, and provide a minimal popup for server status plus login checks for Instagram and LinkedIn.
 
 This phase does **not** implement HTML recording or social publishing. It exists to establish the MV3 runtime, persistence model, setup UX, and server connectivity that Phase 3 and Phase 4 build on.
 
@@ -22,9 +22,9 @@ This phase does **not** implement HTML recording or social publishing. It exists
 - **D-04:** Keep the popup intentionally small: folder setup, server connection status, and login verification status only.
 
 ### Filesystem Setup
-- **D-05:** Folder selection happens from the popup using `window.showDirectoryPicker()` because it requires a user gesture.
-- **D-06:** Persist the `FileSystemDirectoryHandle` in IndexedDB, not `chrome.storage.local`.
-- **D-07:** The popup must surface a clear reconnect state when permission is lost between sessions.
+- **D-05:** The local Node server remains the sole owner of filesystem access in this architecture.
+- **D-06:** The extension does not request direct folder access in Phase 2 because the current Chrome extension context does not reliably expose `showDirectoryPicker()` for this flow.
+- **D-07:** The popup should communicate that folders are server-managed rather than pretending the extension owns them.
 
 ### Server Connectivity
 - **D-08:** Phase 2 consumes the Phase 1 server contract as-is:
@@ -62,7 +62,7 @@ This phase does **not** implement HTML recording or social publishing. It exists
 ### Missing Pieces
 - No `extension/` directory exists yet.
 - No `dist/` build output exists yet.
-- No IndexedDB helper, popup UI, or service worker logic exists yet.
+- No popup UI or service worker logic exists yet.
 
 </code_context>
 

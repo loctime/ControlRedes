@@ -49,14 +49,14 @@ Cross-cutting constraints:
 - El objeto `state` definido en Wave 1 fluye sin cambio de schema a Waves 2 y 3
 
 ### Phase 2: Extension Skeleton
-**Goal:** The Chrome MV3 extension loads without errors, persists all pipeline state across Service Worker restarts via `chrome.storage.local`, communicates with the local server, and provides a minimal popup for folder selection and login verification.
+**Goal:** The Chrome MV3 extension loads without errors, persists all pipeline state across Service Worker restarts via `chrome.storage.local`, communicates with the local server, and provides a minimal popup for server status and login verification.
 **UI hint:** yes
 **Depends on:** Phase 1
-**Requirements:** INFRA-03, INFRA-04, SETUP-01, SETUP-02, SETUP-03
+**Requirements:** INFRA-03, INFRA-04, SETUP-03
 **Success criteria:**
 1. The extension installs from the local `dist/` folder, the Service Worker activates, and `chrome://extensions` shows no errors - verified visually.
 2. After killing and restarting the Service Worker (via `chrome://extensions` -> "inspect" -> terminate), the pipeline state (current phase, pending files list) survives and is readable from `chrome.storage.local` - verified in DevTools.
-3. The popup lets the user pick `nuevas-publicaciones/`, persists the folder handle across browser restarts, and shows a reconnect button when the permission is lost - verified by closing and reopening Chrome.
+3. The popup clearly reflects that filesystem ownership stays on the local server and does not fail by presenting an unsupported folder-picker flow - verified visually in Chrome.
 **Plans:** 3 plans
 
 Plans:

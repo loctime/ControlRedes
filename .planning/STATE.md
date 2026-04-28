@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 | Metric | Value |
 |--------|-------|
 | Phases complete | 1/4 |
-| Requirements delivered | 13/23 |
+| Requirements delivered | 11/23 |
 | Plans executed | 6 |
 
 ## Accumulated Context
@@ -46,6 +46,7 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 
 ### Open Questions
 - Visual Chrome verification is still pending: load `dist/`, inspect `chrome://extensions`, and confirm popup/service worker behavior in-browser.
+- Direct folder selection from the extension was deferred because the verified Chrome context does not expose `showDirectoryPicker()` for this flow and the server already owns filesystem access.
 
 ### Blockers
 - (none)

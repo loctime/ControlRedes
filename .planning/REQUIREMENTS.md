@@ -14,8 +14,8 @@
 
 ### Setup
 
-- [x] **SETUP-01**: El usuario puede seleccionar la carpeta `nuevas-publicaciones/` desde el popup de la extension (File System Access API)
-- [x] **SETUP-02**: El usuario puede reconectar la carpeta si el permiso se pierde entre sesiones del browser
+- [ ] **SETUP-01**: El usuario puede seleccionar la carpeta `nuevas-publicaciones/` desde el popup de la extension (File System Access API)
+- [ ] **SETUP-02**: El usuario puede reconectar la carpeta si el permiso se pierde entre sesiones del browser
 - [x] **SETUP-03**: La extension verifica si el usuario esta logueado en Instagram y LinkedIn antes de iniciar la publicacion
 
 ### Telegram
@@ -84,8 +84,8 @@
 | INFRA-02 | Phase 1 | Delivered |
 | INFRA-03 | Phase 2 | Delivered |
 | INFRA-04 | Phase 2 | Delivered |
-| SETUP-01 | Phase 2 | Delivered |
-| SETUP-02 | Phase 2 | Delivered |
+| SETUP-01 | Phase 2 | Deferred to architecture review |
+| SETUP-02 | Phase 2 | Deferred to architecture review |
 | SETUP-03 | Phase 2 | Delivered |
 | TELE-01 | Phase 1 | Delivered |
 | TELE-02 | Phase 1 | Delivered |
@@ -111,4 +111,4 @@
 
 ---
 *Requirements defined: 2026-04-27*
-*Last updated: 2026-04-28 - Phase 2 delivered, pending live Chrome verification*
+*Last updated: 2026-04-28 - Phase 2 delivered with filesystem ownership clarified; pending live Chrome verification*

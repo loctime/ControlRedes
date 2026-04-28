@@ -7,22 +7,20 @@
   - source folder status
   - login status
 - Added actions:
-  - `Seleccionar carpeta`
-  - `Reconectar carpeta`
   - `Actualizar`
 
-## Folder Handle Persistence
+## Filesystem Ownership
 
-- Implemented IndexedDB-backed persistence in `extension/lib/folder-handle.js`.
-- The popup stores and restores a `FileSystemDirectoryHandle` without relying on `chrome.storage.local`.
-- Permission state is synchronized back into `chrome.storage.local` so the service worker can observe it.
+- During verification, Chrome exposed that `window.showDirectoryPicker()` was not available in the extension flow being used.
+- Rather than forcing a brittle workaround, Phase 2 was aligned with the real architecture: the Node server owns filesystem access.
+- The popup now communicates `Server-owned` for the source folder instead of pretending the extension manages it directly.
 
-## Reconnect Behavior
+## Resulting Behavior
 
-- When no folder exists, popup shows `Not configured`.
-- When permission falls back to prompt, popup shows `Reconnect folder`.
-- When permission is active, popup shows `Folder ready`.
+- The popup no longer attempts to request direct folder access.
+- The extension persists `folderPermission: 'server_owned'` to keep state coherent with the server-first design.
+- This removes a false UX path while preserving the real integration boundary needed by Phase 3.
 
 ## Deviations
 
-- The popup is intentionally utilitarian rather than polished. The priority was setup clarity and Phase 3 readiness, not final UX styling.
+- The original plan mentioned direct folder selection/reconnect, but the verified browser behavior showed that path was not reliable in this extension context and not necessary for the current architecture.
