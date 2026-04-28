@@ -34,9 +34,19 @@
 **Plans:** 3 plans
 
 Plans:
+
+**Wave 1**
 - [ ] 01-01-PLAN.md — Servidor Express + chokidar watcher + endpoints REST (GET /api/status, /api/files, /api/files/:filename)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02-PLAN.md — Bot Telegram: long-polling, comando "publica lo nuevo", guardias (vacío/activo/chat), status updates
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 01-03-PLAN.md — File lifecycle: readCaption, markComplete (archivado + .meta.json), runPipeline con Telegram updates
+
+Cross-cutting constraints:
+- `server/server.js` es el punto de integración de todos los planes — modificado en cada wave
+- El objeto `state` definido en Wave 1 fluye sin cambio de schema a Waves 2 y 3
 
 ### Phase 2: Extension Skeleton
 **Goal:** The Chrome MV3 extension loads without errors, persists all pipeline state across Service Worker restarts via `chrome.storage.local`, communicates with the local server, and provides a minimal popup for folder selection and login verification.
