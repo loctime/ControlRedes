@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ControlAudit – Reel con Sonido</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --bg: #07070f;
+            --surface: #0f0f1c;
+            --cyan: #00e5ff;
+            --orange: #ff6400;
+            --white: #f0f0f8;
+            --gray: #50507a;
+        }
+
+        body {
+            background: #12121f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Barlow', sans-serif;
+            gap: 16px;
+        }
+
+        /* ─── RECORDER UI ─── */
+        .rec-ui {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-radius: 12px;
+            padding: 10px 18px;
+        }
+
+        #rec-btn {
+            background: var(--cyan);
+            color: #07070f;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #rec-btn:hover {
+            transform: scale(1.04)
+        }
+
+        #rec-btn.recording {
+            background: #ff4444;
+            color: #fff;
+            animation: pulse-btn 1s infinite
+        }
+
+        @keyframes pulse-btn {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.7
+            }
+        }
+
+        #rec-status {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            min-width: 140px;
+        }
+
+        #rec-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        #rec-dot.active {
+            background: #ff4444;
+            animation: blink-dot 1s infinite
+        }
+
+        @keyframes blink-dot {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0
+            }
+        }
+
+        .hint {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+        }
+
+        .reel {
+            width: 360px;
+            height: 640px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow:
+                0 0 0 1px rgba(0, 229, 255, 0.08),
+                0 0 80px rgba(0, 229, 255, 0.12),
+                0 30px 100px rgba(0, 0, 0, 0.9);
+            cursor: pointer;
+        }
+
+        /* ─── STORY BARS ─── */
+        .bars {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            gap: 5px;
+            z-index: 200;
+        }
+
+        .bar {
+            flex: 1;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .fill {
+            width: 0%;
+            height: 100%;
+            background: #fff;
+            border-radius: 2px
+        }
+
+        /* ─── NAV ZONES ─── */
+        .nav {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 45%;
+            z-index: 150
+        }
+
+        .nav-l {
+            left: 0
+        }
+
+        .nav-r {
+            right: 0
+        }
+
+        /* ─── SLIDES ─── */
+        .slides {
+            width: 100%;
+            height: 100%;
+            position: relative
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+
+        .slide.on {
+            opacity: 1;
+            pointer-events: all
+        }
+
+        .eyebrow {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--cyan);
+            margin-bottom: 8px;
+        }
+
+        .eyebrow.orange {
+            color: var(--orange)
+        }
+
+        /* ════ SLIDE 1 ════ */
+        .s1 {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .s1 .grid {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(0, 229, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+            background-size: 36px 36px;
+        }
+
+        .s1 .scan {
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.04) 2px, rgba(0, 0, 0, 0.04) 4px);
+            pointer-events: none;
+        }
+
+        .s1 .glow {
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.07) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .s1 .corner {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+        }
+
+        .s1 .c-tl {
+            top: 56px;
+            left: 20px;
+            border-top: 1.5px solid rgba(0, 229, 255, 0.45);
+            border-left: 1.5px solid rgba(0, 229, 255, 0.45)
+        }
+
+        .s1 .c-tr {
+            top: 56px;
+            right: 20px;
+            border-top: 1.5px solid rgba(0, 229, 255, 0.45);
+            border-right: 1.5px solid rgba(0, 229, 255, 0.45)
+        }
+
+        .s1 .c-bl {
+            bottom: 40px;
+            left: 20px;
+            border-bottom: 1.5px solid rgba(255, 100, 0, 0.45);
+            border-left: 1.5px solid rgba(255, 100, 0, 0.45)
+        }
+
+        .s1 .c-br {
+            bottom: 40px;
+            right: 20px;
+            border-bottom: 1.5px solid rgba(255, 100, 0, 0.45);
+            border-right: 1.5px solid rgba(255, 100, 0, 0.45)
+        }
+
+        .s1 .content {
+            position: relative;
+            z-index: 2
+        }
+
+        .s1 .badge {
+            display: inline-block;
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            color: var(--cyan);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 5px 14px;
+            margin-bottom: 22px;
+            animation: fadeUp 0.7s ease 0.2s both;
+        }
+
+        .s1 .wordmark {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 74px;
+            line-height: 1;
+            letter-spacing: 4px;
+            color: var(--white);
+            animation: fadeUp 0.7s ease 0.4s both;
+        }
+
+        .s1 .wordmark b {
+            color: var(--cyan);
+            text-shadow: 0 0 30px rgba(0, 229, 255, 0.55);
+            font-weight: 400;
+        }
+
+        .s1 .tagline {
+            font-family: 'Barlow', sans-serif;
+            font-size: 12px;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(240, 240, 248, 0.45);
+            margin-top: 10px;
+            animation: fadeUp 0.7s ease 0.6s both;
+        }
+
+        .s1 .divline {
+            width: 32px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            margin: 14px auto 0;
+            animation: fadeUp 0.7s ease 0.7s both;
+        }
+
+        /* ════ SLIDE 2 ════ */
+        .s2 {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 0 28px 44px;
+        }
+
+        .s2 .aura {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 10% 10%, rgba(255, 100, 0, 0.18) 0%, transparent 50%), radial-gradient(ellipse at 90% 90%, rgba(0, 229, 255, 0.06) 0%, transparent 45%);
+        }
+
+        .s2 .ghost {
+            position: absolute;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 220px;
+            line-height: 1;
+            color: rgba(255, 100, 0, 0.05);
+            right: -20px;
+            top: 20px;
+            user-select: none;
+        }
+
+        .s2 .content {
+            position: relative;
+            z-index: 2
+        }
+
+        .s2 .headline {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 62px;
+            line-height: 0.94;
+            color: var(--white);
+            margin-bottom: 18px;
+        }
+
+        .s2 .headline em {
+            font-style: normal;
+            color: var(--orange);
+            text-shadow: 0 0 24px rgba(255, 100, 0, 0.5);
+        }
+
+        .s2 .body {
+            font-size: 14px;
+            font-weight: 300;
+            color: rgba(240, 240, 248, 0.65);
+            line-height: 1.65;
+        }
+
+        .s2 .body strong {
+            color: var(--white);
+            font-weight: 600
+        }
+
+        /* ════ SLIDE 3 ════ */
+        .s3 {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            padding: 58px 20px 32px;
+        }
+
+        .s3::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        .s3 .hdr {
+            position: relative;
+            z-index: 2;
+            margin-bottom: 20px
+        }
+
+        .s3 .title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 40px;
+            line-height: 1;
+            letter-spacing: 1px;
+            color: var(--white);
+        }
+
+        .s3 .title span {
+            color: var(--cyan)
+        }
+
+        .grid6 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .fcard {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(0, 229, 255, 0.1);
+            border-radius: 8px;
+            padding: 14px 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fcard::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.4), transparent);
+        }
+
+        .fcard .ico {
+            font-size: 20px;
+            margin-bottom: 6px;
+            display: block
+        }
+
+        .fcard .nm {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .fcard .dc {
+            font-size: 10px;
+            font-weight: 300;
+            color: rgba(240, 240, 248, 0.45);
+            line-height: 1.4;
+        }
+
+        /* ════ SLIDE 4 ════ */
+        .s4 {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 28px;
+        }
+
+        .s4 .aura {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(0, 229, 255, 0.06) 0%, transparent 65%);
+        }
+
+        .s4 .cg {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+        }
+
+        .s4 .cg-tl {
+            top: 40px;
+            left: 20px;
+            border-top: 1.5px solid rgba(0, 229, 255, 0.25);
+            border-left: 1.5px solid rgba(0, 229, 255, 0.25)
+        }
+
+        .s4 .cg-br {
+            bottom: 40px;
+            right: 20px;
+            border-bottom: 1.5px solid rgba(255, 100, 0, 0.25);
+            border-right: 1.5px solid rgba(255, 100, 0, 0.25)
+        }
+
+        .rings {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin-bottom: 32px;
+        }
+
+        .ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 229, 255, 0.15);
+        }
+
+        .r1 {
+            inset: 0;
+            animation: ripple 3s ease-out infinite;
+        }
+
+        .r2 {
+            inset: 15px;
+            animation: ripple 3s ease-out 0.6s infinite;
+        }
+
+        .r3 {
+            inset: 30px;
+            animation: ripple 3s ease-out 1.2s infinite;
+        }
+
+        .r4 {
+            inset: 45px;
+            animation: ripple 3s ease-out 1.8s infinite;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 0.6
+            }
+
+            100% {
+                transform: scale(1.15);
+                opacity: 0
+            }
+        }
+
+        .ring-ico {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+        }
+
+        .pill-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--cyan);
+            margin-bottom: 20px;
+        }
+
+        .blink {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cyan);
+            animation: blink-dot 1s infinite;
+        }
+
+        .s4 .headline {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 52px;
+            line-height: 1;
+            color: var(--white);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .s4 .headline span {
+            color: var(--cyan);
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+        }
+
+        .s4 .body {
+            font-size: 13px;
+            font-weight: 300;
+            color: rgba(240, 240, 248, 0.6);
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .s4 .body strong {
+            color: var(--white);
+            font-weight: 600
+        }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fpill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(240, 240, 248, 0.6);
+        }
+
+        .fpill.hi {
+            background: rgba(0, 229, 255, 0.1);
+            border-color: rgba(0, 229, 255, 0.4);
+            color: var(--cyan);
+        }
+
+        .farrow {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 18px;
+        }
+
+        /* ════ SLIDE 5 ════ */
+        .s5 {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 0 28px 44px;
+        }
+
+        .s5 .aura {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 80% 20%, rgba(0, 229, 255, 0.08) 0%, transparent 50%);
+        }
+
+        .barchart {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 55%;
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            padding: 0 16px;
+            opacity: 0.3;
+        }
+
+        .bc {
+            flex: 1;
+            background: linear-gradient(to top, var(--cyan), rgba(0, 229, 255, 0.3));
+            border-radius: 3px 3px 0 0;
+        }
+
+        .s5 .headline {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 48px;
+            line-height: 1;
+            color: var(--white);
+            margin-bottom: 14px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .s5 .headline span {
+            color: var(--cyan);
+        }
+
+        .s5 .body {
+            font-size: 13px;
+            font-weight: 300;
+            color: rgba(240, 240, 248, 0.6);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .chk {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .chk-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.15);
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            color: var(--cyan);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .chk-txt {
+            font-size: 12px;
+            font-weight: 400;
+            color: rgba(240, 240, 248, 0.7);
+            line-height: 1.5;
+        }
+
+        /* ════ SLIDE 6 ════ */
+        .s6 {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            padding: 58px 20px 32px;
+        }
+
+        .s6 .aura {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 80%, rgba(0, 229, 255, 0.06) 0%, transparent 55%);
+        }
+
+        .s6 .hdr {
+            position: relative;
+            z-index: 2;
+            margin-bottom: 20px
+        }
+
+        .s6 .title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 40px;
+            line-height: 1;
+            letter-spacing: 1px;
+            color: var(--white);
+        }
+
+        .s6 .title span {
+            color: var(--cyan)
+        }
+
+        .mockdash {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 229, 255, 0.12);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+            margin-bottom: 16px;
+        }
+
+        .titlebar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .winlabel {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.3);
+            margin-left: 4px;
+        }
+
+        .kpis {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .kpi {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .kpi:last-child {
+            border-right: none
+        }
+
+        .kpi-v {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 28px;
+            color: var(--orange);
+            line-height: 1;
+        }
+
+        .kpi-l {
+            font-size: 9px;
+            font-weight: 400;
+            color: rgba(255, 100, 0, 0.5);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            padding: 12px 12px 0;
+            height: 80px;
+        }
+
+        .cb {
+            flex: 1;
+            border-radius: 2px 2px 0 0;
+        }
+
+        .pdfbadge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 229, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .pdfbadge .ico {
+            font-size: 24px;
+        }
+
+        .pdfbadge strong {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--white);
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
+        }
+
+        .pdfbadge span {
+            font-size: 11px;
+            font-weight: 300;
+            color: rgba(240, 240, 248, 0.45);
+        }
+
+        /* ════ SLIDE 7 ════ */
+        .s7 {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 32px;
+        }
+
+        .s7 .aura {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(0, 229, 255, 0.06) 0%, transparent 60%), radial-gradient(ellipse at 10% 90%, rgba(255, 100, 0, 0.08) 0%, transparent 50%);
+        }
+
+        .s7 .cg {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+        }
+
+        .s7 .cg-tl {
+            top: 40px;
+            left: 20px;
+            border-top: 1.5px solid rgba(0, 229, 255, 0.2);
+            border-left: 1.5px solid rgba(0, 229, 255, 0.2)
+        }
+
+        .s7 .cg-br {
+            bottom: 40px;
+            right: 20px;
+            border-bottom: 1.5px solid rgba(255, 100, 0, 0.2);
+            border-right: 1.5px solid rgba(255, 100, 0, 0.2)
+        }
+
+        .small-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 14px;
+            letter-spacing: 6px;
+            color: rgba(240, 240, 248, 0.25);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .s7 .divline {
+            width: 32px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            margin: 0 auto 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .s7 .headline {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 62px;
+            line-height: 0.95;
+            color: var(--white);
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .s7 .headline span {
+            color: var(--cyan);
+            text-shadow: 0 0 24px rgba(0, 229, 255, 0.45);
+        }
+
+        .s7 .sub {
+            font-size: 13px;
+            font-weight: 300;
+            color: rgba(240, 240, 248, 0.5);
+            line-height: 1.6;
+            margin-bottom: 28px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .ctabtn {
+            background: linear-gradient(135deg, var(--cyan), rgba(0, 200, 230, 0.8));
+            color: #07070f;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 14px 28px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .or {
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(240, 240, 248, 0.2);
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .handle {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: var(--cyan);
+            position: relative;
+            z-index: 2;
+        }
+
+        .watermark {
+            position: absolute;
+            bottom: 20px;
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(18px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- RECORDER UI -->
+    <div class="rec-ui">
+        <button id="rec-btn" onclick="toggleRecord()">⏺ Grabar</button>
+        <div id="rec-status"><span id="rec-dot"></span><span id="rec-text">Listo para grabar</span></div>
+    </div>
+
+    <div class="reel" id="reel">
+        <div class="bars">
+            <div class="bar">
+                <div class="fill" id="f0"></div>
+            </div>
+            <div class="bar">
+                <div class="fill" id="f1"></div>
+            </div>
+            <div class="bar">
+                <div class="fill" id="f2"></div>
+            </div>
+            <div class="bar">
+                <div class="fill" id="f3"></div>
+            </div>
+            <div class="bar">
+                <div class="fill" id="f4"></div>
+            </div>
+            <div class="bar">
+                <div class="fill" id="f5"></div>
+            </div>
+            <div class="bar">
+                <div class="fill" id="f6"></div>
+            </div>
+        </div>
+        <div class="nav nav-l" onclick="go(-1)"></div>
+        <div class="nav nav-r" onclick="go(1)"></div>
+        <div class="slides">
+
+            <!-- SLIDE 1: BRAND -->
+            <div class="slide s1 on" data-idx="0">
+                <div class="grid"></div>
+                <div class="scan"></div>
+                <div class="glow"></div>
+                <div class="corner c-tl"></div>
+                <div class="corner c-tr"></div>
+                <div class="corner c-bl"></div>
+                <div class="corner c-br"></div>
+                <div class="content">
+                    <div class="badge">Gestión de campo</div>
+                    <div class="wordmark">Control<b>Audit</b></div>
+                    <div class="tagline">Seguridad laboral digital</div>
+                    <div class="divline"></div>
+                </div>
+            </div>
+
+            <!-- SLIDE 2: PROBLEMA -->
+            <div class="slide s2" data-idx="1">
+                <div class="aura"></div>
+                <div class="ghost">!</div>
+                <div class="content">
+                    <div class="eyebrow orange">El problema real</div>
+                    <div class="headline">La seguridad<br>no puede<br><em>esperar</em>.</div>
+                    <div class="body">
+                        Cada auditoría sin registrar, cada capacitación sin seguimiento
+                        — es un <strong>riesgo real</strong> para tu empresa y tu equipo.<br><br>
+                        <strong>ControlAudit</strong> lo resuelve. Desde el campo.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: FEATURES -->
+            <div class="slide s3" data-idx="2">
+                <div class="hdr">
+                    <div class="eyebrow">Todo en un solo sistema</div>
+                    <div class="title">6 módulos.<br><span>Una plataforma.</span></div>
+                </div>
+                <div class="grid6">
+                    <div class="fcard"><span class="ico">📋</span>
+                        <div class="nm">Auditorías</div>
+                        <div class="dc">Formularios + fotos en campo</div>
+                    </div>
+                    <div class="fcard"><span class="ico">🎓</span>
+                        <div class="nm">Capacitaciones</div>
+                        <div class="dc">Registro y control de asistencia</div>
+                    </div>
+                    <div class="fcard"><span class="ico">⚠️</span>
+                        <div class="nm">Accidentes</div>
+                        <div class="dc">Incidentes documentados</div>
+                    </div>
+                    <div class="fcard"><span class="ico">👷</span>
+                        <div class="nm">Nómina</div>
+                        <div class="dc">Empleados y perfiles</div>
+                    </div>
+                    <div class="fcard"><span class="ico">📄</span>
+                        <div class="nm">Reportes PDF</div>
+                        <div class="dc">Exporta con un clic</div>
+                    </div>
+                    <div class="fcard"><span class="ico">📊</span>
+                        <div class="nm">Dashboard</div>
+                        <div class="dc">Vista operativa diaria</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: OFFLINE HERO -->
+            <div class="slide s4" data-idx="3">
+                <div class="aura"></div>
+                <div class="cg cg-tl"></div>
+                <div class="cg cg-br"></div>
+                <div class="rings">
+                    <div class="ring r1"></div>
+                    <div class="ring r2"></div>
+                    <div class="ring r3"></div>
+                    <div class="ring r4"></div>
+                    <div class="ring-ico">📡</div>
+                </div>
+                <div class="pill-tag">
+                    <div class="blink"></div>Función estrella
+                </div>
+                <div class="headline">Sin señal.<br><span>Sin problema.</span></div>
+                <div class="body">El auditor va al campo sin internet. Registra formularios, fotos e incidentes
+                    completamente <strong>offline</strong>.</div>
+                <div class="flow">
+                    <div class="fpill">Campo</div>
+                    <div class="farrow">›</div>
+                    <div class="fpill">Sin señal</div>
+                    <div class="farrow">›</div>
+                    <div class="fpill hi">✓ Sincroniza</div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: SYNC -->
+            <div class="slide s5" data-idx="4">
+                <div class="aura"></div>
+                <div class="barchart">
+                    <div class="bc" style="height:32%;opacity:0.4"></div>
+                    <div class="bc" style="height:50%;opacity:0.5"></div>
+                    <div class="bc" style="height:42%;opacity:0.55"></div>
+                    <div class="bc" style="height:65%;opacity:0.65"></div>
+                    <div class="bc" style="height:55%;opacity:0.7"></div>
+                    <div class="bc" style="height:78%;opacity:0.8"></div>
+                    <div class="bc" style="height:68%;opacity:0.85"></div>
+                    <div class="bc" style="height:88%;box-shadow:0 0 8px rgba(0,229,255,0.5)"></div>
+                    <div class="bc" style="height:72%;opacity:0.9"></div>
+                    <div class="bc" style="height:82%"></div>
+                </div>
+                <div class="headline">Vuelves.<br><span>Se sincroniza solo.</span></div>
+                <div class="body">Al reconectarse, toda la información sube automáticamente. Sin pasos extra. Sin
+                    pérdidas.</div>
+                <div class="checklist">
+                    <div class="chk">
+                        <div class="chk-dot">✓</div>
+                        <div class="chk-txt">Datos siempre respaldados en la nube</div>
+                    </div>
+                    <div class="chk">
+                        <div class="chk-dot">✓</div>
+                        <div class="chk-txt">Sin riesgo de pérdida de información</div>
+                    </div>
+                    <div class="chk">
+                        <div class="chk-dot">✓</div>
+                        <div class="chk-txt">Disponible para todo el equipo al instante</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: DASHBOARD -->
+            <div class="slide s6" data-idx="5">
+                <div class="aura"></div>
+                <div class="hdr">
+                    <div class="eyebrow">Panel de control</div>
+                    <div class="title">Vista operativa.<br><span>Decisiones claras.</span></div>
+                </div>
+                <div class="mockdash">
+                    <div class="titlebar">
+                        <div class="dot" style="background:#ff6400"></div>
+                        <div class="dot" style="background:#ffb800"></div>
+                        <div class="dot" style="background:#00e5ff"></div>
+                        <div class="winlabel">Dashboard Operativo</div>
+                    </div>
+                    <div class="kpis">
+                        <div class="kpi">
+                            <div class="kpi-v">24</div>
+                            <div class="kpi-l">Auditorías</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-v" style="color:#00e5ff">98%</div>
+                            <div class="kpi-l" style="color:rgba(0,229,255,0.5)">Cumplimiento</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-v" style="color:#ff6400">0</div>
+                            <div class="kpi-l" style="color:rgba(255,100,0,0.5)">Incidentes</div>
+                        </div>
+                    </div>
+                    <div class="chart">
+                        <div class="cb" style="height:40%;background:rgba(0,229,255,0.3)"></div>
+                        <div class="cb" style="height:58%;background:rgba(0,229,255,0.4)"></div>
+                        <div class="cb" style="height:38%;background:rgba(0,229,255,0.3)"></div>
+                        <div class="cb" style="height:72%;background:rgba(0,229,255,0.5)"></div>
+                        <div class="cb" style="height:60%;background:rgba(0,229,255,0.55)"></div>
+                        <div class="cb" style="height:82%;background:rgba(0,229,255,0.7)"></div>
+                        <div class="cb" style="height:68%;background:rgba(0,229,255,0.65)"></div>
+                        <div class="cb"
+                            style="height:92%;background:var(--cyan);box-shadow:0 0 6px rgba(0,229,255,0.4)"></div>
+                    </div>
+                </div>
+                <div class="pdfbadge">
+                    <div class="ico">📄</div>
+                    <div><strong>Reportes PDF automáticos</strong><span>Generados en segundos. Listos para
+                            compartir.</span></div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: CTA -->
+            <div class="slide s7" data-idx="6">
+                <div class="aura"></div>
+                <div class="cg cg-tl"></div>
+                <div class="cg cg-br"></div>
+                <div class="small-logo">ControlAudit</div>
+                <div class="divline"></div>
+                <div class="headline">Tu equipo.<br>Más seguro.<br><span>Desde hoy.</span></div>
+                <div class="sub">Auditorías, capacitaciones, incidentes<br>y más — funcionando sin internet.</div>
+                <div class="ctabtn">Solicitar Demo</div>
+                <div class="or">o encuéntranos en Instagram</div>
+                <div class="handle">@controlaudit</div>
+                <div class="watermark">ControlAudit · Seguridad Laboral</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="hint">← Toca para navegar · Auto-avanza →</div>
+
+    <script>
+        // ══════════════════════════════════════════
+        //  WEB AUDIO ENGINE
+        // ══════════════════════════════════════════
+        let audioCtx = null;
+
+        function getAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
+        }
+
+        // Whoosh suave — entrada de slide
+        function soundWhoosh() {
+            const ctx = getAudio();
+            const buf = ctx.createBuffer(1, ctx.sampleRate * 0.4, ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++) {
+                const t = i / ctx.sampleRate;
+                data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t / 0.4, 2.5) * 0.35;
+            }
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(800, ctx.currentTime);
+            filter.frequency.linearRampToValueAtTime(3000, ctx.currentTime + 0.15);
+            filter.Q.value = 0.8;
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0.6, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+            src.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+            src.start();
+        }
+
+        // Clic digital — transición rápida
+        function soundClick() {
+            const ctx = getAudio();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1200, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.4, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.1);
+        }
+
+        // Tono tech — slides de datos/features
+        function soundTech() {
+            const ctx = getAudio();
+            const t = ctx.currentTime;
+            [0, 0.06, 0.12].forEach((delay, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = [440, 554, 660][i];
+                gain.gain.setValueAtTime(0, t + delay);
+                gain.gain.linearRampToValueAtTime(0.08, t + delay + 0.02);
+                gain.gain.linearRampToValueAtTime(0, t + delay + 0.12);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(t + delay);
+                osc.stop(t + delay + 0.15);
+            });
+        }
+
+        // Ping suave — confirmación / checkmarks
+        function soundPing() {
+            const ctx = getAudio();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.5);
+        }
+
+        // Pulso low — slide de alerta/problema
+        function soundPulse() {
+            const ctx = getAudio();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+        }
+
+        // Rise final — CTA
+        function soundRise() {
+            const ctx = getAudio();
+            const t = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(330, t);
+            osc.frequency.exponentialRampToValueAtTime(990, t + 0.6);
+            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.linearRampToValueAtTime(0.5, t + 0.3);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.8);
+        }
+
+        // Mapa de sonido por slide
+        const SLIDE_SOUNDS = [
+            soundWhoosh,  // 0: Brand intro
+            soundPulse,   // 1: Problema
+            soundTech,    // 2: Features
+            soundClick,   // 3: Offline
+            soundPing,    // 4: Sync
+            soundTech,    // 5: Dashboard
+            soundRise,    // 6: CTA
+        ];
+
+        // ══════════════════════════════════════════
+        //  SLIDE ENGINE
+        // ══════════════════════════════════════════
+        const TOTAL = 7;
+        const DURATION = 4800;
+        let cur = 0;
+        let t0 = null;
+        let raf = null;
+
+        const slides = document.querySelectorAll('.slide');
+        const fills = Array.from({ length: TOTAL }, (_, i) => document.getElementById('f' + i));
+
+        function showSlide(idx) {
+            if (raf) cancelAnimationFrame(raf);
+
+            // Trigger sound
+            if (SLIDE_SOUNDS[idx]) {
+                try { SLIDE_SOUNDS[idx](); } catch (e) { }
+            }
+
+            slides.forEach(s => s.classList.remove('on'));
+            void slides[idx].offsetWidth;
+            slides.forEach((s, i) => { if (i === idx) s.classList.add('on'); });
+
+            fills.forEach((f, i) => {
+                f.style.transition = 'none';
+                f.style.width = i < idx ? '100%' : '0%';
+            });
+
+            cur = idx;
+            t0 = performance.now();
+
+            function tick(now) {
+                const pct = Math.min((now - t0) / DURATION * 100, 100);
+                fills[cur].style.width = pct + '%';
+                if (pct < 100) {
+                    raf = requestAnimationFrame(tick);
+                } else {
+                    showSlide((cur + 1) % TOTAL);
+                }
+            }
+            raf = requestAnimationFrame(tick);
+        }
+
+        function go(dir) {
+            let next = cur + dir;
+            if (next < 0) next = 0;
+            if (next >= TOTAL) next = 0;
+            showSlide(next);
+        }
+
+        document.getElementById('reel').addEventListener('mouseenter', () => {
+            if (raf) cancelAnimationFrame(raf);
+        });
+        document.getElementById('reel').addEventListener('mouseleave', () => {
+            t0 = performance.now() - (parseFloat(fills[cur].style.width) / 100 * DURATION);
+            function tick(now) {
+                const pct = Math.min((now - t0) / DURATION * 100, 100);
+                fills[cur].style.width = pct + '%';
+                if (pct < 100) { raf = requestAnimationFrame(tick); }
+                else { showSlide((cur + 1) % TOTAL); }
+            }
+            raf = requestAnimationFrame(tick);
+        });
+
+        // ══════════════════════════════════════════
+        //  GRABADOR INTEGRADO
+        // ══════════════════════════════════════════
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
+
+        async function toggleRecord() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                await startRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                // Captura de pantalla + audio del sistema
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { width: 1920, height: 1080, frameRate: 30 },
+                    audio: true  // audio del sistema (tab)
+                });
+
+                // Audio del Web Audio API
+                const ctx = getAudio();
+                const dest = ctx.createMediaStreamDestination();
+
+                // Parchear destination para capturar todo el audio generado
+                const origConnect = AudioNode.prototype.connect;
+                const _patched = new Set();
+                document.querySelectorAll('*'); // dummy
+                // Redirigir salida del contexto de audio al stream
+                ctx.destination._patchedDest = dest;
+
+                // Combinar streams
+                const audioTracks = [
+                    ...(displayStream.getAudioTracks()),
+                    ...dest.stream.getAudioTracks()
+                ];
+                const videoTrack = displayStream.getVideoTracks()[0];
+                const combined = new MediaStream([videoTrack, ...audioTracks]);
+
+                recordedChunks = [];
+                mediaRecorder = new MediaRecorder(combined, {
+                    mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+                        ? 'video/webm;codecs=vp9,opus'
+                        : 'video/webm'
+                });
+
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'controlaudit-reel.webm';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    setUI(false);
+                };
+
+                mediaRecorder.start(100);
+                isRecording = true;
+                setUI(true);
+
+                // Reiniciar el reel desde el slide 0
+                showSlide(0);
+
+            } catch (err) {
+                alert('Para grabar: Chrome debe capturar la pestaña completa con audio del sistema.\n\nEn el diálogo que aparece, seleccioná "Esta pestaña" y activá "Compartir audio de la pestaña".');
+                console.error(err);
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(t => t.stop());
+            }
+            isRecording = false;
+        }
+
+        function setUI(recording) {
+            const btn = document.getElementById('rec-btn');
+            const dot = document.getElementById('rec-dot');
+            const txt = document.getElementById('rec-text');
+            if (recording) {
+                btn.textContent = '⏹ Detener';
+                btn.classList.add('recording');
+                dot.classList.add('active');
+                txt.textContent = 'Grabando...';
+            } else {
+                btn.textContent = '⏺ Grabar';
+                btn.classList.remove('recording');
+                dot.classList.remove('active');
+                txt.textContent = 'Guardando...';
+                setTimeout(() => txt.textContent = 'Listo para grabar', 2000);
+            }
+        }
+
+        // Iniciar
+        showSlide(0);
+    </script>
+</body>
+
+</html>

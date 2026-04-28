@@ -16,6 +16,12 @@ function initBot(state, onTrigger) {
 
   const bot = new TelegramBot(token, { polling: true });
 
+  // Configurar los comandos que aparecen en el menú de Telegram (el botón con la barra /)
+  bot.setMyCommands([
+    { command: '/start', description: 'Mostrar menú de opciones' },
+    { command: '/publicar', description: 'Publicar lo nuevo' }
+  ]).catch(err => console.error('[Telegram] Error al configurar comandos:', err.message));
+
   bot.on('message', async (msg) => {
     const fromChatId = String(msg.chat.id);
     const allowedChatId = String(state.chatId);
@@ -25,7 +31,27 @@ function initBot(state, onTrigger) {
     }
 
     const text = (msg.text || '').trim().toLowerCase();
-    if (text !== COMMAND_TRIGGER) {
+    
+    // Mostrar un botón de teclado persistente
+    if (text === '/start' || text === 'menu' || text === 'menú') {
+      await bot.sendMessage(fromChatId, 'Selecciona una acción:', {
+        reply_markup: {
+          keyboard: [
+            [{ text: '🚀 Publica lo nuevo' }]
+          ],
+          resize_keyboard: true,
+          is_persistent: true
+        }
+      });
+      return;
+    }
+
+    const isPublishCommand = 
+      text === COMMAND_TRIGGER || 
+      text === '🚀 publica lo nuevo' || 
+      text === '/publicar';
+
+    if (!isPublishCommand) {
       return;
     }
 

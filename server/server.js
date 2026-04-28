@@ -80,6 +80,21 @@ app.get('/api/files/:filename', (req, res) => {
   return res.sendFile(filepath);
 });
 
+app.get('/api/assets/:filename', (req, res) => {
+  const filename = path.basename(req.params.filename);
+  const filepath = path.resolve(WATCH_DIR, filename);
+
+  if (!filepath.startsWith(WATCH_DIR + path.sep) && filepath !== WATCH_DIR) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  if (!fs.existsSync(filepath)) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  return res.sendFile(filepath);
+});
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.post('/api/video-ready', upload.single('video'), async (req, res) => {

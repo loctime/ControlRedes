@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080" />
+    <title>Audio Test</title>
+    <style>
+        body {
+            width: 1080px;
+            height: 1920px;
+            margin: 0;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            font-size: 82px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>TEST CON AUDIO</h1>
+
+    <audio id="bg" autoplay playsinline src="http://localhost:3333/api/assets/beep-test.mp3"></audio>
+
+    <script>
+        const DURACION_MS = 7000;
+        setTimeout(() => {
+            window.parent.postMessage({ type: "gsd:done" }, "*");
+        }, DURACION_MS);
+    </script>
+</body>
+
+</html>

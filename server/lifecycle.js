@@ -7,6 +7,7 @@ const { renderHtmlToVideo } = require('./renderer');
 const WATCH_DIR = path.resolve(__dirname, '..', 'nuevas-publicaciones');
 const ARCHIVE_DIR = path.resolve(__dirname, '..', 'publicaciones-anteriores');
 const VIDEOS_DIR = path.resolve(__dirname, '..', 'videos-generados');
+const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a', '.aac'];
 
 function readCaption(filename) {
   const basename = filename.replace(/\.html$/i, '');
@@ -50,6 +51,17 @@ function markComplete(filename, platforms, status, videoSpecs) {
   fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2), 'utf8');
 }
 
+function findCompanionAudio(filename) {
+  const basename = filename.replace(/\.html$/i, '');
+  for (const ext of AUDIO_EXTENSIONS) {
+    const candidate = path.join(WATCH_DIR, `${basename}${ext}`);
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 async function runPipeline(files, state, sendStatusFn, bot, chatId) {
   if (!Array.isArray(files) || files.length === 0) {
     await sendStatusFn(bot, chatId, 'No hay archivos nuevos');
@@ -72,6 +84,7 @@ async function runPipeline(files, state, sendStatusFn, bot, chatId) {
       const specs = await renderHtmlToVideo({
         htmlUrl,
         outputPath,
+        companionAudioPath: findCompanionAudio(filename),
         width: 1080,
         height: 1920,
         fps: 30,
@@ -95,4 +108,4 @@ async function runPipeline(files, state, sendStatusFn, bot, chatId) {
   }
 }
 
-module.exports = { readCaption, markComplete, runPipeline };
+module.exports = { readCaption, markComplete, runPipeline, findCompanionAudio };

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080" />
+    <title>WebAudio Test</title>
+    <style>
+        body {
+            width: 1080px;
+            height: 1920px;
+            margin: 0;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            background: #0b1020;
+            color: #e2e8f0;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            font-size: 80px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>SONIDO POR CÓDIGO</h1>
+    <script>
+        const DURACION_MS = 6000;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AC();
+        const dest = ctx.createMediaStreamDestination();
+        const rec = new MediaRecorder(dest.stream, { mimeType: "audio/webm;codecs=opus" });
+        const chunks = [];
+
+        rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+        rec.start(200);
+
+        function tone(t, f, d, v) {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = "sine";
+            o.frequency.value = f;
+            g.gain.value = 0.0001;
+            o.connect(g);
+            g.connect(ctx.destination);
+            g.connect(dest);
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(v, t + 0.03);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+            o.start(t);
+            o.stop(t + d + 0.05);
+        }
+
+        async function run() {
+            await ctx.resume();
+            const t0 = ctx.currentTime + 0.15;
+            tone(t0 + 0.0, 440, 0.3, 0.1);
+            tone(t0 + 0.6, 660, 0.3, 0.1);
+            tone(t0 + 1.2, 880, 0.3, 0.1);
+            tone(t0 + 2.0, 740, 0.3, 0.1);
+            tone(t0 + 2.8, 520, 0.3, 0.1);
+            tone(t0 + 3.6, 980, 0.3, 0.1);
+
+            setTimeout(() => {
+                rec.onstop = async () => {
+                    const blob = new Blob(chunks, { type: "audio/webm" });
+                    const buf = new Uint8Array(await blob.arrayBuffer());
+                    let bin = "";
+                    for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+                    const b64 = btoa(bin);
+
+                    window.parent.postMessage({
+                        type: "gsd:done",
+                        audioData: b64,
+                        audioMime: "audio/webm"
+                    }, "*");
+                };
+                rec.stop();
+            }, DURACION_MS);
+        }
+
+        run().catch(() => {
+            window.parent.postMessage({ type: "gsd:done" }, "*");
+        });
+    </script>
+</body>
+
+</html>

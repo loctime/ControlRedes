@@ -4,6 +4,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
+const http = require('http');
+const https = require('https');
 const { chromium } = require('playwright');
 const ffmpegPath = require('ffmpeg-static');
 
@@ -11,20 +13,31 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function runFfmpegFromFrames({ framesPattern, fps, outputPath }) {
+function runFfmpegFromFrames({ framesPattern, fps, outputPath, audioPath = null }) {
   return new Promise((resolve, reject) => {
+    const hasAudio = Boolean(audioPath && fs.existsSync(audioPath));
     const args = [
       '-y',
       '-framerate', String(fps),
       '-i', framesPattern,
-      '-f', 'lavfi',
-      '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100',
+    ];
+
+    if (hasAudio) {
+      args.push('-i', audioPath);
+    } else {
+      args.push('-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
+    }
+
+    args.push(
       '-c:v', 'libx264',
       '-pix_fmt', 'yuv420p',
       '-c:a', 'aac',
+      '-b:a', '192k',
+      '-af', 'loudnorm=I=-14:LRA=11:TP=-1.5',
+      '-movflags', '+faststart',
       '-shortest',
-      outputPath,
-    ];
+      outputPath
+    );
 
     const proc = spawn(ffmpegPath, args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let stderr = '';
@@ -42,9 +55,43 @@ function runFfmpegFromFrames({ framesPattern, fps, outputPath }) {
   });
 }
 
+function downloadToFile(url, destPath) {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https:') ? https : http;
+    const req = client.get(url, (res) => {
+      if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        res.resume();
+        downloadToFile(res.headers.location, destPath).then(resolve).catch(reject);
+        return;
+      }
+      if (res.statusCode !== 200) {
+        res.resume();
+        reject(new Error(`audio download failed: HTTP ${res.statusCode}`));
+        return;
+      }
+      const out = fs.createWriteStream(destPath);
+      res.pipe(out);
+      out.on('finish', () => out.close(resolve));
+      out.on('error', reject);
+    });
+    req.on('error', reject);
+  });
+}
+
+function extensionFromMime(mime) {
+  const type = String(mime || '').toLowerCase();
+  if (type.includes('wav')) return '.wav';
+  if (type.includes('mpeg') || type.includes('mp3')) return '.mp3';
+  if (type.includes('ogg')) return '.ogg';
+  if (type.includes('aac')) return '.aac';
+  if (type.includes('m4a') || type.includes('mp4')) return '.m4a';
+  return '.webm';
+}
+
 async function renderHtmlToVideo({
   htmlUrl,
   outputPath,
+  companionAudioPath = null,
   width = 1080,
   height = 1920,
   fps = 30,
@@ -58,18 +105,80 @@ async function renderHtmlToVideo({
     viewport: { width, height },
   });
   const page = await context.newPage();
+  let exposedInjectedAudio = null;
 
   try {
+    await page.exposeFunction('__gsdInjectAudio', async (payload) => {
+      if (!payload || typeof payload !== 'object') {
+        return;
+      }
+      if (typeof payload.base64 === 'string' && payload.base64.length > 0) {
+        exposedInjectedAudio = {
+          base64: payload.base64,
+          mime: typeof payload.mime === 'string' ? payload.mime : 'audio/webm',
+        };
+      }
+    });
+
     await page.addInitScript(() => {
       window.__GSD_DONE = false;
+      window.__GSD_AUDIO_BASE64 = null;
+      window.__GSD_AUDIO_MIME = 'audio/webm';
+      window.__GSD_EMBED_AUDIO_BASE64 = null;
+      window.__GSD_EMBED_AUDIO_MIME = null;
+
       window.addEventListener('message', (event) => {
         if (event?.data?.type === 'gsd:done') {
+          if (typeof event.data.audioData === 'string' && event.data.audioData.length > 0) {
+            window.__GSD_AUDIO_BASE64 = event.data.audioData;
+          }
+          if (typeof event.data.audioMime === 'string' && event.data.audioMime.length > 0) {
+            window.__GSD_AUDIO_MIME = event.data.audioMime;
+          }
           window.__GSD_DONE = true;
         }
       });
     });
 
+    console.log(`[renderer] opening ${htmlUrl}`);
     await page.goto(htmlUrl, { waitUntil: 'networkidle', timeout: 30000 });
+    page.on('pageerror', (error) => {
+      console.warn(`[renderer][pageerror] ${error.message}`);
+    });
+
+    let mixedAudioPath = null;
+    const pageAudioSources = await page.evaluate(() => {
+      const direct = Array.from(document.querySelectorAll('audio')).map((el) => el.currentSrc || el.src || '');
+      const sourceTags = Array.from(document.querySelectorAll('audio source')).map((el) => el.src || '');
+      const candidates = [...direct, ...sourceTags]
+        .filter(Boolean);
+      return Array.from(new Set(candidates));
+    });
+    console.log(`[renderer] detected ${pageAudioSources.length} audio source(s) in HTML`);
+    if (pageAudioSources.length > 0) {
+      const firstAudio = pageAudioSources[0];
+      let extension = '.audio';
+      try {
+        extension = path.extname(new URL(firstAudio, htmlUrl).pathname || '') || '.audio';
+      } catch (_) {
+        // no-op
+      }
+      const absoluteAudioUrl = new URL(firstAudio, htmlUrl).toString();
+      const downloadedAudioPath = path.join(tmpRoot, `source_audio${extension}`);
+      console.log(`[renderer] downloading audio from ${absoluteAudioUrl}`);
+      await downloadToFile(absoluteAudioUrl, downloadedAudioPath).catch((error) => {
+        console.warn(`[renderer] audio download failed: ${error.message}`);
+        return null;
+      });
+      if (fs.existsSync(downloadedAudioPath)) {
+        console.log(`[renderer] audio downloaded: ${downloadedAudioPath}`);
+        mixedAudioPath = downloadedAudioPath;
+      }
+    }
+    if (!mixedAudioPath && companionAudioPath && fs.existsSync(companionAudioPath)) {
+      mixedAudioPath = companionAudioPath;
+      console.log(`[renderer] using companion audio file: ${companionAudioPath}`);
+    }
 
     const captureRect = await page.evaluate(() => {
       function isVisible(el) {
@@ -187,11 +296,46 @@ async function renderHtmlToVideo({
       await delay(frameIntervalMs);
     }
 
+    if (!mixedAudioPath) {
+      let injectedAudio = await page.evaluate(() => ({
+        base64: window.__GSD_AUDIO_BASE64,
+        mime: window.__GSD_AUDIO_MIME,
+        embedBase64: window.__GSD_EMBED_AUDIO_BASE64,
+        embedMime: window.__GSD_EMBED_AUDIO_MIME,
+      }));
+      if ((!injectedAudio || !injectedAudio.base64) && injectedAudio && injectedAudio.embedBase64) {
+        injectedAudio = {
+          base64: injectedAudio.embedBase64,
+          mime: injectedAudio.embedMime || 'audio/webm',
+        };
+      }
+      if ((!injectedAudio || !injectedAudio.base64) && exposedInjectedAudio) {
+        injectedAudio = exposedInjectedAudio;
+      }
+      if (injectedAudio && injectedAudio.base64) {
+        const injectedAudioPath = path.join(
+          tmpRoot,
+          `injected_audio${extensionFromMime(injectedAudio.mime)}`
+        );
+        fs.writeFileSync(injectedAudioPath, Buffer.from(injectedAudio.base64, 'base64'));
+        mixedAudioPath = injectedAudioPath;
+        console.log(`[renderer] using injected HTML audio (${injectedAudio.mime || 'audio/webm'})`);
+      } else {
+        console.log('[renderer] no injected HTML audio payload found');
+      }
+    }
+
+    if (!mixedAudioPath) {
+      console.log('[renderer] no audio found; exporting with silent fallback');
+    }
+
     await runFfmpegFromFrames({
       framesPattern: framePattern,
       fps,
       outputPath,
+      audioPath: mixedAudioPath,
     });
+    console.log(`[renderer] exported mp4: ${outputPath}`);
 
     const durationSeconds = Math.max(1, Math.round((Date.now() - captureStart) / 1000));
     return {
