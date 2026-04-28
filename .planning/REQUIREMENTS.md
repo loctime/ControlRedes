@@ -9,14 +9,14 @@
 
 - [x] **INFRA-01**: El servidor Node.js local corre en segundo plano y expone una API REST en localhost:3333
 - [x] **INFRA-02**: El servidor inicia el watcher de `nuevas-publicaciones/` automaticamente al arrancar
-- [ ] **INFRA-03**: La extension Chrome (MV3) se instala localmente con todos los permisos declarados en manifest.json
-- [ ] **INFRA-04**: El Service Worker mantiene su estado de trabajo en `chrome.storage.local` para sobrevivir interrupciones
+- [x] **INFRA-03**: La extension Chrome (MV3) se instala localmente con todos los permisos declarados en manifest.json
+- [x] **INFRA-04**: El Service Worker mantiene su estado de trabajo en `chrome.storage.local` para sobrevivir interrupciones
 
 ### Setup
 
-- [ ] **SETUP-01**: El usuario puede seleccionar la carpeta `nuevas-publicaciones/` desde el popup de la extension (File System Access API)
-- [ ] **SETUP-02**: El usuario puede reconectar la carpeta si el permiso se pierde entre sesiones del browser
-- [ ] **SETUP-03**: La extension verifica si el usuario esta logueado en Instagram y LinkedIn antes de iniciar la publicacion
+- [x] **SETUP-01**: El usuario puede seleccionar la carpeta `nuevas-publicaciones/` desde el popup de la extension (File System Access API)
+- [x] **SETUP-02**: El usuario puede reconectar la carpeta si el permiso se pierde entre sesiones del browser
+- [x] **SETUP-03**: La extension verifica si el usuario esta logueado en Instagram y LinkedIn antes de iniciar la publicacion
 
 ### Telegram
 
@@ -82,11 +82,11 @@
 |-------------|-------|--------|
 | INFRA-01 | Phase 1 | Delivered |
 | INFRA-02 | Phase 1 | Delivered |
-| INFRA-03 | Phase 2 | Pending |
-| INFRA-04 | Phase 2 | Pending |
-| SETUP-01 | Phase 2 | Pending |
-| SETUP-02 | Phase 2 | Pending |
-| SETUP-03 | Phase 2 | Pending |
+| INFRA-03 | Phase 2 | Delivered |
+| INFRA-04 | Phase 2 | Delivered |
+| SETUP-01 | Phase 2 | Delivered |
+| SETUP-02 | Phase 2 | Delivered |
+| SETUP-03 | Phase 2 | Delivered |
 | TELE-01 | Phase 1 | Delivered |
 | TELE-02 | Phase 1 | Delivered |
 | REC-01 | Phase 3 | Pending |
@@ -111,4 +111,4 @@
 
 ---
 *Requirements defined: 2026-04-27*
-*Last updated: 2026-04-28 - Phase 1 verified with live Telegram test*
+*Last updated: 2026-04-28 - Phase 2 delivered, pending live Chrome verification*

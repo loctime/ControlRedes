@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SocialPublisher Setup</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="panel">
+      <header class="hero">
+        <p class="eyebrow">ControlRedes</p>
+        <h1>Extension Setup</h1>
+        <p class="subtitle">Base MV3 lista para conectar server, carpeta y sesiones.</p>
+      </header>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Server local</h2>
+          <button id="refresh-server" class="ghost" type="button">Actualizar</button>
+        </div>
+        <p id="server-status" class="status-pill status-unknown">Checking server...</p>
+        <p id="server-detail" class="detail">Esperando primer snapshot.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Carpeta fuente</h2>
+        </div>
+        <p id="folder-name" class="detail">Ninguna carpeta conectada.</p>
+        <p id="folder-status" class="status-pill status-unknown">Not configured</p>
+        <div class="actions">
+          <button id="pick-folder" type="button">Seleccionar carpeta</button>
+          <button id="reconnect-folder" class="ghost" type="button">Reconectar carpeta</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Logins</h2>
+          <button id="check-logins" class="ghost" type="button">Verificar logins</button>
+        </div>
+        <div class="platform-list">
+          <div class="platform-row">
+            <span>Instagram</span>
+            <span id="instagram-status" class="status-pill status-unknown">Unknown</span>
+          </div>
+          <div class="platform-row">
+            <span>LinkedIn</span>
+            <span id="linkedin-status" class="status-pill status-unknown">Unknown</span>
+          </div>
+        </div>
+        <p id="login-detail" class="detail">Todavia no se corrio la verificacion.</p>
+      </section>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

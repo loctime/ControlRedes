@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "SocialPublisher ControlRedes",
+  "version": "0.1.0",
+  "description": "MV3 extension skeleton for SocialPublisher.",
+  "permissions": [
+    "storage",
+    "alarms",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost:3333/*",
+    "https://www.instagram.com/*",
+    "https://www.linkedin.com/*"
+  ],
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "SocialPublisher Setup",
+    "default_popup": "popup.html"
+  }
+}
