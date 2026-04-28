@@ -57,7 +57,18 @@ Cross-cutting constraints:
 1. The extension installs from the local `dist/` folder, the Service Worker activates, and `chrome://extensions` shows no errors - verified visually.
 2. After killing and restarting the Service Worker (via `chrome://extensions` -> "inspect" -> terminate), the pipeline state (current phase, pending files list) survives and is readable from `chrome.storage.local` - verified in DevTools.
 3. The popup lets the user pick `nuevas-publicaciones/`, persists the folder handle across browser restarts, and shows a reconnect button when the permission is lost - verified by closing and reopening Chrome.
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+
+**Wave 1**
+- [ ] 02-01-PLAN.md - Extension MV3 base: manifest, service worker, chrome.storage.local state, server polling via alarms
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 02-02-PLAN.md - Popup de setup: elegir carpeta, persistir FileSystemDirectoryHandle, reconexion de permisos
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 02-03-PLAN.md - Verificacion basica de login para Instagram y LinkedIn, persistida en storage
 
 ### Phase 3: Recording Pipeline
 **Goal:** For each HTML file in the queue, the extension renders it in Chrome at 1080x1920, records until the HTML emits `gsd:done` (or until the configurable timeout), appends a post-animation buffer, and produces a publish-ready MP4 via ffmpeg.wasm transcoding.
@@ -88,10 +99,10 @@ Cross-cutting constraints:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Local Server Foundation | 3/3 | Verified | 2026-04-28 |
-| 2. Extension Skeleton | 0/0 | Not started | - |
+| 2. Extension Skeleton | 0/3 | Ready to execute | - |
 | 3. Recording Pipeline | 0/0 | Not started | - |
 | 4. Social Publishing | 0/0 | Not started | - |
 
 ---
 *Roadmap created: 2026-04-27*
-*Updated: 2026-04-28 - Phase 1 executed (3 plans complete, pending verification)*
+*Updated: 2026-04-28 - Phase 2 plans created (3 plans, 3 waves)*
