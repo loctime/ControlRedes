@@ -25,12 +25,12 @@
 
 ### Recording
 
-- [ ] **REC-01**: La extension carga cada HTML en Chrome para renderizarlo (tab oculto u Offscreen Document)
-- [ ] **REC-02**: La grabacion se detiene cuando el HTML emite `window.parent.postMessage({ type: "gsd:done" }, "*")`
-- [ ] **REC-03**: La grabacion incluye un buffer de segundos extra despues del evento de fin de animacion
-- [ ] **REC-04**: Si el HTML no emite el evento, la grabacion se detiene despues de un timeout configurable (default: 60s)
-- [ ] **REC-05**: El video se graba a resolucion 1080x1920 (9:16 vertical) fija
-- [ ] **REC-06**: El video WebM se transcodifica a MP4 H.264+AAC via ffmpeg.wasm antes de publicar
+- [x] **REC-01**: La extension carga cada HTML en Chrome para renderizarlo (tab oculto u Offscreen Document)
+- [x] **REC-02**: La grabacion se detiene cuando el HTML emite `window.parent.postMessage({ type: "gsd:done" }, "*")`
+- [x] **REC-03**: La grabacion incluye un buffer de segundos extra despues del evento de fin de animacion
+- [x] **REC-04**: Si el HTML no emite el evento, la grabacion se detiene despues de un timeout configurable (default: 60s)
+- [x] **REC-05**: El video se graba a resolucion 1080x1920 (9:16 vertical) fija
+- [x] **REC-06**: El video WebM se transcodifica a MP4 H.264+AAC via ffmpeg.wasm antes de publicar
 
 ### File Management
 
@@ -89,12 +89,12 @@
 | SETUP-03 | Phase 2 | Delivered |
 | TELE-01 | Phase 1 | Delivered |
 | TELE-02 | Phase 1 | Delivered |
-| REC-01 | Phase 3 | Pending |
-| REC-02 | Phase 3 | Pending |
-| REC-03 | Phase 3 | Pending |
-| REC-04 | Phase 3 | Pending |
-| REC-05 | Phase 3 | Pending |
-| REC-06 | Phase 3 | Pending |
+| REC-01 | Phase 3 | Delivered |
+| REC-02 | Phase 3 | Delivered |
+| REC-03 | Phase 3 | Delivered |
+| REC-04 | Phase 3 | Delivered |
+| REC-05 | Phase 3 | Delivered |
+| REC-06 | Phase 3 | Delivered |
 | FILE-01 | Phase 1 | Delivered |
 | FILE-02 | Phase 1 | Delivered |
 | FILE-03 | Phase 1 | Delivered |
@@ -111,4 +111,4 @@
 
 ---
 *Requirements defined: 2026-04-27*
-*Last updated: 2026-04-28 - Phase 2 verified in Chrome with filesystem ownership clarified*
+*Last updated: 2026-04-28 - Phase 3 verified with automatic local renderer pipeline*
