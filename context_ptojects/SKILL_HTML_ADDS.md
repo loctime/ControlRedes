@@ -38,7 +38,6 @@ context_ptojects/
 │   ├── info.md        ← qué hace la app, público, beneficios
 │   ├── colores.md     ← paleta y fuentes de marca
 │   ├── capturas/      ← screenshots, logos
-│   └── ejemplos_ads/  ← trabajos anteriores (referencia de estilo)
 ├── ControlDoc/
 └── [OtroProyecto]/
 ```
@@ -51,8 +50,6 @@ Ir directo a leer el contexto sin preguntar.
 
 ### Cómo leer el contexto
 1. `Read` en cada `.md` y `.txt` de la carpeta del producto
-2. `LS` en `capturas/` para ver qué imágenes hay
-3. Revisar `ejemplos_ads/` para entender el estilo visual anterior
 
 Con eso, entender: qué hace el producto, para quién, qué problemas resuelve, colores y estilo de marca, qué se comunicó antes.
 
@@ -60,8 +57,6 @@ Con eso, entender: qué hace el producto, para quién, qué problemas resuelve, 
 
 Solo las que falten:
 1. **¿Sobre qué funcionalidad/tema querés el ad?** → sugerir opciones basadas en lo leído
-2. **¿Para qué plataforma?** → Instagram / LinkedIn / Facebook / X
-3. **¿Cuántos segundos?** → Default: 15s Instagram, 20s LinkedIn
 
 Si el usuario ya respondió algo, no volver a preguntar.
 
@@ -72,7 +67,7 @@ Decirle que no hay contexto y continuar preguntando lo esencial.
 
 ## Matrices de copywriting — elegí la que mejor encaje
 
-Son frameworks de referencia, no recetas con tiempos fijos. Claude decide la duración de cada parte según el contenido.
+Son frameworks de referencia, no recetas con tiempos fijos. Decide la duración de cada parte según el contenido.
 
 **AIDA** — cuando el producto necesita explicación o la audiencia no lo conoce
 - Atención → Hook impactante que para el scroll
@@ -106,14 +101,14 @@ Si ninguna encaja perfectamente, combiná o inventá la estructura que mejor sir
   Sin esta señal el grabador no sabe cuándo cortar.
 - **Zona segura:** no poner texto en los primeros ni últimos 150px de alto
 - **Sin assets locales:** solo Google Fonts, SVG inline o emojis
-- **Sin audio:** lo maneja el sistema de grabación
+- **Siempre incluir la señal `gsd:done`** en el JavaScript del HTML — es crítica para el sistema de grabación
 - **Fuentes:** solo Google Fonts o system fonts
 
 ---
 
 ## Libertad creativa — acá Claude decide
 
-**Diseño:** Respetá los colores de marca del contexto leído. El resto — tipografía, layout, animaciones, ritmo visual — elegilo para que el mensaje impacte y se entienda rápido. En publicidad, urgencia y claridad son lo primero.
+**Diseño:** Respetá los colores de marca del contexto leído. El resto — tipografía, layout, animaciones, efectos de sonido, sonido ambiente,  ritmo visual — elegilo para que el mensaje impacte y se entienda rápido. En publicidad, urgencia y claridad son lo primero.
 
 **Duración:** La necesaria para que el mensaje llegue completo sin perder al espectador. Ni tan corto que quede incompleto, ni tan largo que aburra.
 
@@ -168,11 +163,10 @@ Si ninguna encaja perfectamente, combiná o inventá la estructura que mejor sir
 ## Dónde guardar
 
 ```
-context_ptojects/
+nuevas-publicaciones/
 └── [Producto]/
-    └── ejemplos_ads/
-        ├── [producto]-[matriz]-[plataforma]-v[n].html
-        └── caption-[tema].txt
+    ├── [producto]-[matriz]-[plataforma]-v[n].html
+    └── caption-[tema].txt
 ```
 
 ---
@@ -200,7 +194,7 @@ Guardar como `caption-[nombre-del-ad].txt` en la misma carpeta.
 
 1. **HTML** guardado en la carpeta del producto
 2. **Caption .txt** para cada plataforma relevante
-3. **Una línea de resumen:** duración | matriz usada | plataforma
+
 
 ---
 
@@ -234,3 +228,48 @@ window.__GSD_EMBED_AUDIO_BASE64 = wavBase64;
 window.__GSD_EMBED_AUDIO_MIME = "audio/wav";
 window.parent.postMessage({ type: "gsd:done" }, "*");
 ```
+
+## FAST CONTEXT MODE (obligatorio)
+
+Para bajar consumo y acelerar entrega, este skill debe usar lectura minima:
+
+1. Leer solo:
+   - `context_ptojects/<Proyecto>/info.md`
+   - `context_ptojects/<Proyecto>/colores.md`
+2. No leer ni listar `capturas/` por defecto; solo si el usuario pide usar una captura especifica.
+3. PROHIBIDO leer `ejemplos_ads/` en modo normal. Solo si el usuario lo ordena de forma explicita.
+4. No leer otros `.md/.txt` fuera de esos paths salvo pedido explicito.
+5. Si falta contexto, hacer una sola pregunta corta y luego generar.
+
+Regla de prioridad:
+- Este bloque FAST CONTEXT MODE prevalece sobre instrucciones anteriores de lectura amplia dentro de este skill.
+
+
+## Audio Ready Gate (NO negociable)
+
+Cuando haya audio embebido generado por codigo, **no** enviar `gsd:done` hasta que el audio este listo.
+
+Usar este patron:
+
+```javascript
+let audioReady = false;
+buildAudio().then(b64 => {
+  window.__GSD_EMBED_AUDIO_BASE64 = b64;
+  window.__GSD_EMBED_AUDIO_MIME = 'audio/wav';
+  audioReady = true;
+});
+
+setTimeout(() => {
+  const wait = () => {
+    if (audioReady) {
+      window.parent.postMessage({ type: 'gsd:done' }, '*');
+    } else {
+      setTimeout(wait, 100);
+    }
+  };
+  wait();
+}, DURACION_MS);
+```
+
+Si falta este gate, el renderer puede exportar en silencio.
+

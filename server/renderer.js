@@ -141,7 +141,7 @@ async function renderHtmlToVideo({
     });
 
     console.log(`[renderer] opening ${htmlUrl}`);
-    await page.goto(htmlUrl, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(htmlUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     page.on('pageerror', (error) => {
       console.warn(`[renderer][pageerror] ${error.message}`);
     });
@@ -216,54 +216,10 @@ async function renderHtmlToVideo({
       if (explicitRoot && isVisible(explicitRoot)) {
         return sanitizeRect(explicitRoot.getBoundingClientRect(), vw, vh);
       }
-
-      const mediaNodes = Array.from(document.querySelectorAll('canvas, video, svg'));
-      const mediaVisible = mediaNodes.filter(isVisible);
-      if (mediaVisible.length > 0) {
-        const union = mediaVisible.reduce(
-          (acc, el) => {
-            const r = el.getBoundingClientRect();
-            acc.left = Math.min(acc.left, r.left);
-            acc.top = Math.min(acc.top, r.top);
-            acc.right = Math.max(acc.right, r.right);
-            acc.bottom = Math.max(acc.bottom, r.bottom);
-            return acc;
-          },
-          { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity }
-        );
-        return sanitizeRect(
-          {
-            left: union.left,
-            top: union.top,
-            right: union.right,
-            bottom: union.bottom,
-          },
-          vw,
-          vh
-        );
-      }
-
-      const bodyChildren = Array.from(document.body ? document.body.children : []);
-      const candidates = bodyChildren
-        .filter(isVisible)
-        .map((el) => {
-          const rect = el.getBoundingClientRect();
-          return {
-            rect,
-            area: rect.width * rect.height,
-            fullAreaRatio: (rect.width * rect.height) / (vw * vh),
-          };
-        })
-        // remove giant full-screen backgrounds/wrappers
-        .filter((item) => item.fullAreaRatio < 0.92)
-        .sort((a, b) => b.area - a.area);
-
-      if (candidates.length > 0) {
-        return sanitizeRect(candidates[0].rect, vw, vh);
-      }
-
+      // Default: capture full viewport to avoid accidental skinny crops.
       return { x: 0, y: 0, width: vw - (vw % 2), height: vh - (vh % 2) };
     });
+    console.log(`[renderer] capture rect: ${captureRect.width}x${captureRect.height} @ ${captureRect.x},${captureRect.y}`);
 
     const frameIntervalMs = Math.max(20, Math.floor(1000 / fps));
     const captureStart = Date.now();

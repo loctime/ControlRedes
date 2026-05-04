@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080">
+  <title>ControlAudit — Accidentes Laborales</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: #0B1A2B;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      position: relative;
+    }
+
+    /* Radial glow background */
+    .bg-glow {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .glow-1 {
+      width: 700px; height: 700px;
+      top: -250px; right: -250px;
+      background: radial-gradient(circle, rgba(60,181,74,0.12) 0%, transparent 70%);
+    }
+    .glow-2 {
+      width: 500px; height: 500px;
+      bottom: 200px; left: -200px;
+      background: radial-gradient(circle, rgba(26,53,87,0.5) 0%, transparent 70%);
+    }
+
+    /* Green top bar */
+    .top-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 10px;
+      background: linear-gradient(90deg, #3CB54A 0%, #27884F 100%);
+    }
+
+    /* Main layout */
+    .wrap {
+      position: absolute;
+      top: 160px; left: 72px; right: 72px; bottom: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Top section */
+    .top-section {}
+
+    /* Category badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(60,181,74,0.12);
+      border: 1.5px solid rgba(60,181,74,0.45);
+      border-radius: 50px;
+      padding: 12px 28px;
+      font-size: 26px;
+      font-weight: 600;
+      color: #3CB54A;
+      letter-spacing: 0.5px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease forwards;
+      animation-delay: 0.3s;
+    }
+
+    .badge svg {
+      width: 28px; height: 28px;
+      fill: #3CB54A;
+    }
+
+    /* Headline */
+    .headline {
+      margin-top: 36px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+      animation-delay: 0.8s;
+    }
+
+    .headline-kicker {
+      font-size: 30px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    .headline-title {
+      font-size: 80px;
+      font-weight: 900;
+      line-height: 1.0;
+      color: #fff;
+    }
+
+    .headline-title .accent { color: #3CB54A; }
+
+    .headline-sub {
+      margin-top: 24px;
+      font-size: 34px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.45;
+    }
+
+    /* Separator */
+    .sep {
+      height: 3px;
+      background: linear-gradient(90deg, #3CB54A 30%, transparent 100%);
+      border-radius: 3px;
+      transform-origin: left;
+      opacity: 0;
+      animation: expandLine 0.6s ease forwards;
+      animation-delay: 1.6s;
+    }
+
+    /* Points list */
+    .points {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .point {
+      display: flex;
+      align-items: flex-start;
+      gap: 28px;
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+
+    .point-1 { animation: slideRight 0.55s cubic-bezier(0.22,1,0.36,1) forwards; animation-delay: 2.1s; }
+    .point-2 { animation: slideRight 0.55s cubic-bezier(0.22,1,0.36,1) forwards; animation-delay: 2.9s; }
+    .point-3 { animation: slideRight 0.55s cubic-bezier(0.22,1,0.36,1) forwards; animation-delay: 3.7s; }
+
+    .point-icon-wrap {
+      width: 88px; height: 88px;
+      min-width: 88px;
+      background: rgba(60,181,74,0.1);
+      border: 2px solid rgba(60,181,74,0.35);
+      border-radius: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 38px;
+      margin-top: 4px;
+    }
+
+    .point-body {}
+
+    .point-label {
+      font-size: 22px;
+      font-weight: 700;
+      color: #3CB54A;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .point-heading {
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: #fff;
+    }
+
+    .point-detail {
+      font-size: 28px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.58);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    /* CTA card */
+    .cta-card {
+      background: rgba(60,181,74,0.08);
+      border: 1.5px solid rgba(60,181,74,0.3);
+      border-radius: 24px;
+      padding: 40px 48px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+      animation-delay: 4.7s;
+    }
+
+    .cta-question {
+      font-size: 36px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.4;
+    }
+
+    .cta-action {
+      font-size: 30px;
+      font-weight: 700;
+      color: #3CB54A;
+      margin-top: 14px;
+    }
+
+    /* Brand footer */
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0;
+      animation: fadeIn 0.5s ease forwards;
+      animation-delay: 5.4s;
+    }
+
+    .brand-name {
+      font-size: 32px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.5px;
+    }
+    .brand-name b { color: #3CB54A; font-weight: 800; }
+
+    .brand-handle {
+      font-size: 28px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* Keyframes */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes slideRight {
+      from { opacity: 0; transform: translateX(-30px); }
+      to   { opacity: 1; transform: translateX(0);      }
+    }
+    @keyframes expandLine {
+      from { opacity: 0; transform: scaleX(0); }
+      to   { opacity: 1; transform: scaleX(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar"></div>
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <div class="wrap">
+
+    <!-- Top -->
+    <div class="top-section">
+      <div class="badge">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 19h20L12 2zm0 3.5L19.5 18h-15L12 5.5zM11 10v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg>
+        Seguridad Laboral
+      </div>
+
+      <div class="headline">
+        <div class="headline-kicker">Lo que no podés ignorar</div>
+        <div class="headline-title">
+          Después de<br>un accidente<br><span class="accent">hay trabajo</span><br>pendiente.
+        </div>
+        <div class="headline-sub">
+          3 pasos críticos que determinan<br>si el próximo se puede prevenir.
+        </div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Points -->
+    <div class="points">
+
+      <div class="point point-1">
+        <div class="point-icon-wrap">📋</div>
+        <div class="point-body">
+          <div class="point-label">01 —</div>
+          <div class="point-heading">Registro inmediato</div>
+          <div class="point-detail">Cada hora sin registrar<br>es evidencia perdida.</div>
+        </div>
+      </div>
+
+      <div class="point point-2">
+        <div class="point-icon-wrap">🔍</div>
+        <div class="point-body">
+          <div class="point-label">02 —</div>
+          <div class="point-heading">Causa raíz</div>
+          <div class="point-detail">No qué pasó —<br>sino por qué pasó.</div>
+        </div>
+      </div>
+
+      <div class="point point-3">
+        <div class="point-icon-wrap">📊</div>
+        <div class="point-body">
+          <div class="point-label">03 —</div>
+          <div class="point-heading">Seguimiento normativo</div>
+          <div class="point-detail">Sin trazabilidad<br>el riesgo se repite.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-card">
+      <div class="cta-question">¿Tu empresa tiene estos pasos documentados?</div>
+      <div class="cta-action">💬 Contanos en los comentarios →</div>
+    </div>
+
+    <!-- Brand -->
+    <div class="brand-row">
+      <div class="brand-name">Control<b>Audit</b></div>
+      <div class="brand-handle">Gestión SH digital</div>
+    </div>
+
+  </div>
+
+  <script>
+    const DURACION_MS = 9000;
+
+    setTimeout(() => {
+      window.parent.postMessage({ type: "gsd:done" }, "*");
+    }, DURACION_MS);
+  </script>
+
+</body>
+</html>

@@ -53,7 +53,6 @@ Ir directo a leer el contexto sin preguntar.
 ### Cómo leer el contexto
 1. `Read` en cada `.md` y `.txt` de la carpeta del producto
 2. `LS` en `capturas/` para ver qué imágenes hay
-3. Revisar `ejemplos_ads/` para entender el estilo visual anterior
 
 Con eso, entender: qué hace el producto, para quién, qué problemas resuelve, colores y estilo de marca.
 
@@ -194,3 +193,48 @@ window.__GSD_EMBED_AUDIO_BASE64 = wavBase64;
 window.__GSD_EMBED_AUDIO_MIME = "audio/wav";
 window.parent.postMessage({ type: "gsd:done" }, "*");
 ```
+
+## FAST CONTEXT MODE (obligatorio)
+
+Para bajar consumo y acelerar entrega, este skill debe usar lectura minima:
+
+1. Leer solo:
+   - `context_ptojects/<Proyecto>/info.md`
+   - `context_ptojects/<Proyecto>/colores.md`
+2. No leer ni listar `capturas/` por defecto; solo si el usuario pide usar una captura especifica.
+3. PROHIBIDO leer `ejemplos_ads/` en modo normal. Solo si el usuario lo ordena de forma explicita.
+4. No leer otros `.md/.txt` fuera de esos paths salvo pedido explicito.
+5. Si falta contexto, hacer una sola pregunta corta y luego generar.
+
+Regla de prioridad:
+- Este bloque FAST CONTEXT MODE prevalece sobre instrucciones anteriores de lectura amplia dentro de este skill.
+
+
+## Audio Ready Gate (NO negociable)
+
+Cuando haya audio embebido generado por codigo, **no** enviar `gsd:done` hasta que el audio este listo.
+
+Usar este patron:
+
+```javascript
+let audioReady = false;
+buildAudio().then(b64 => {
+  window.__GSD_EMBED_AUDIO_BASE64 = b64;
+  window.__GSD_EMBED_AUDIO_MIME = 'audio/wav';
+  audioReady = true;
+});
+
+setTimeout(() => {
+  const wait = () => {
+    if (audioReady) {
+      window.parent.postMessage({ type: 'gsd:done' }, '*');
+    } else {
+      setTimeout(wait, 100);
+    }
+  };
+  wait();
+}, DURACION_MS);
+```
+
+Si falta este gate, el renderer puede exportar en silencio.
+

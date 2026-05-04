@@ -1,0 +1,37 @@
+📲 INSTAGRAM
+
+¿Sabés cómo protegemos tu información?
+
+Detrás de cada dato que cargás en nuestra plataforma hay una capa de seguridad real y verificada:
+
+🟠 Cloudflare activo — DDoS, WAF y rate limiting. Tu tráfico pasa por uno de los escudos más grandes del mundo antes de llegar a nuestros servidores.
+🔒 SSL Full Strict + HSTS — cifrado de extremo a extremo y conexiones siempre seguras.
+🔥 Backblaze B2 — archivos en bucket privado, cifrados en reposo, solo accesibles por URL firmada.
+✉️ SPF + DKIM + DMARC — nadie puede hacerse pasar por nosotros en el correo.
+🔐 Código fuente privado — solo el equipo autorizado tiene acceso.
+
+Seguridad que no se anuncia, se demuestra.
+
+💬 ¿Tenés alguna pregunta sobre cómo cuidamos tus datos? Te respondemos.
+
+#ControlDoc #ControlAudit #Seguridad #SaaS #CloudSecurity #Argentina #TechArgentina #Cloudflare #Ciberseguridad
+
+---
+
+💼 LINKEDIN
+
+En Control tomamos la seguridad de tu información en serio — y tenemos la configuración para demostrarlo.
+
+Hace poco auditamos y reforzamos nuestra infraestructura. Esto es lo que tenemos activo hoy:
+
+✅ Cloudflare con proxy activo en todos los subdominios (DDoS, WAF, rate limiting)
+✅ SSL Full Strict + HSTS de 1 año
+✅ Backblaze B2 con bucket privado, URLs firmadas y cifrado en reposo
+✅ Autenticación de email: SPF + DKIM + DMARC
+✅ Repositorios de código privados en GitHub
+
+No es marketing. Es configuración real, verificada.
+
+Si tenés preguntas sobre seguridad o querés saber más sobre cómo protegemos los datos de tu empresa, escribinos a hola@controldoc.app
+
+#Seguridad #SaaS #Cloudflare #InfraestructuraCloud #ControlDoc #ControlAudit

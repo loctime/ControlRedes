@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080">
+  <title>ControlAudit — Narrativa SH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: #0a0f1a;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+    }
+
+    .scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ── SCENE 1: HOOK ───────────────────────────────────────── */
+    #s1 { background: #0a0f1a; padding: 0 80px; }
+
+    .s1-eyebrow {
+      font-size: 30px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-bottom: 48px;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+    }
+
+    .s1-headline {
+      font-size: 86px;
+      font-weight: 900;
+      line-height: 1.05;
+      text-align: center;
+      color: #fff;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    .s1-sub {
+      font-size: 38px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.45);
+      margin-top: 48px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    /* ── SCENE 2: CAOS ───────────────────────────────────────── */
+    #s2 { background: #0a0f1a; padding: 0 60px; flex-direction: column; gap: 0; }
+
+    .s2-label {
+      font-size: 28px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      margin-bottom: 60px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .chaos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+      width: 960px;
+      margin-bottom: 72px;
+    }
+
+    .c-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 20px;
+      padding: 48px 28px 40px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .c-card.show { opacity: 1; transform: translateY(0); }
+
+    .c-icon { font-size: 60px; display: block; margin-bottom: 20px; }
+    .c-title { font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.8); }
+    .c-sub { font-size: 22px; color: rgba(255,255,255,0.3); margin-top: 10px; }
+
+    .s2-q {
+      font-size: 52px;
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.2;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+    }
+
+    /* ── SCENE 3: IMPACTO ────────────────────────────────────── */
+    #s3 { background: #0a0f1a; }
+
+    .s3-glow {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(ellipse at center, rgba(220,53,69,0.18) 0%, transparent 65%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .s3-text {
+      font-size: 90px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.1;
+      padding: 0 80px;
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .s3-text .accent { color: #DC3545; }
+
+    .s3-sub {
+      font-size: 38px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      margin-top: 56px;
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    /* ── SCENE 4: RESOLUCIÓN ─────────────────────────────────── */
+    #s4 { background: #1A3557; flex-direction: column; padding: 0 80px; }
+
+    .s4-brand {
+      font-size: 100px;
+      font-weight: 900;
+      letter-spacing: -3px;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      margin-bottom: 80px;
+    }
+
+    .s4-brand .g { color: #3CB54A; }
+
+    .checklist { display: flex; flex-direction: column; gap: 36px; width: 840px; }
+
+    .chk {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      opacity: 0;
+      transform: translateX(-24px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .chk.show { opacity: 1; transform: translateX(0); }
+
+    .chk-dot {
+      width: 60px;
+      height: 60px;
+      background: #3CB54A;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      box-shadow: 0 0 24px rgba(60,181,74,0.4);
+    }
+
+    .chk-txt { font-size: 46px; font-weight: 600; }
+
+    /* ── SCENE 5: CTA ────────────────────────────────────────── */
+    #s5 { background: linear-gradient(175deg, #1A3557 0%, #0e1d30 100%); padding: 0 80px; }
+
+    .s5-app {
+      font-size: 26px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      margin-bottom: 56px;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .s5-main {
+      font-size: 96px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.0;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+    }
+
+    .s5-main .g { color: #3CB54A; }
+
+    .s5-tag {
+      font-size: 38px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      margin-top: 56px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+    }
+
+    .s5-bar {
+      width: 0;
+      height: 4px;
+      background: #3CB54A;
+      margin-top: 64px;
+      border-radius: 2px;
+      transition: width 1.2s ease;
+    }
+
+    .s5-bar.grow { width: 220px; }
+
+    /* ── OVERLAY ─────────────────────────────────────────────── */
+    .vignette {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%);
+      pointer-events: none;
+      z-index: 90;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="vignette"></div>
+
+  <!-- S1: HOOK -->
+  <div class="scene" id="s1">
+    <div class="s1-eyebrow" id="s1e">Seguridad &amp; Higiene</div>
+    <div class="s1-headline" id="s1h">¿Y si hoy viene<br>una auditoría<br>externa?</div>
+    <div class="s1-sub" id="s1s">Tenés todo bajo control…<br>¿o no?</div>
+  </div>
+
+  <!-- S2: CAOS -->
+  <div class="scene" id="s2">
+    <div class="s2-label" id="s2l">El día a día sin sistema</div>
+    <div class="chaos-grid">
+      <div class="c-card" id="c1">
+        <span class="c-icon">📋</span>
+        <div class="c-title">Auditorías</div>
+        <div class="c-sub">en papel o Excel</div>
+      </div>
+      <div class="c-card" id="c2">
+        <span class="c-icon">📁</span>
+        <div class="c-title">Incidentes</div>
+        <div class="c-sub">sin seguimiento</div>
+      </div>
+      <div class="c-card" id="c3">
+        <span class="c-icon">📧</span>
+        <div class="c-title">Reportes</div>
+        <div class="c-sub">perdidos en mails</div>
+      </div>
+    </div>
+    <div class="s2-q" id="s2q">¿Cuántas horas<br>perdiste esta semana?</div>
+  </div>
+
+  <!-- S3: IMPACTO -->
+  <div class="scene" id="s3">
+    <div class="s3-glow" id="s3g"></div>
+    <div class="s3-text" id="s3t">Un accidente.<br>Sin <span class="accent">registro</span>.<br>Sin respaldo.</div>
+    <div class="s3-sub" id="s3s">Las consecuencias recaen sobre vos.</div>
+  </div>
+
+  <!-- S4: RESOLUCIÓN -->
+  <div class="scene" id="s4">
+    <div class="s4-brand" id="s4b">Control<span class="g">Audit</span></div>
+    <div class="checklist">
+      <div class="chk" id="k1"><div class="chk-dot">✓</div><div class="chk-txt">Auditorías digitales</div></div>
+      <div class="chk" id="k2"><div class="chk-dot">✓</div><div class="chk-txt">Reportes automáticos</div></div>
+      <div class="chk" id="k3"><div class="chk-dot">✓</div><div class="chk-txt">Incidentes registrados</div></div>
+      <div class="chk" id="k4"><div class="chk-dot">✓</div><div class="chk-txt">Cumplimiento demostrable</div></div>
+    </div>
+  </div>
+
+  <!-- S5: CTA -->
+  <div class="scene" id="s5">
+    <div class="s5-app" id="s5a">ControlAudit</div>
+    <div class="s5-main" id="s5m">Tu gestión SH,<br><span class="g">bajo control.</span></div>
+    <div class="s5-tag" id="s5t">Guardá esto. Lo vas a necesitar.</div>
+    <div class="s5-bar" id="s5bar"></div>
+  </div>
+
+  <script>
+    const DURACION_MS = 24000;
+
+    // ── Helpers ─────────────────────────────────────────────────────────────────
+
+    function fadeIn(id, delay) {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.style.opacity = '1';
+      }, delay);
+    }
+
+    function showScene(id) {
+      const el = document.getElementById(id);
+      if (el) el.style.opacity = '1';
+    }
+
+    function hideScene(id, dur = 600) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.transition = `opacity ${dur}ms ease`;
+      el.style.opacity = '0';
+    }
+
+    function showCard(id, delay) {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('show');
+      }, delay);
+    }
+
+    // ── Timeline visual ──────────────────────────────────────────────────────────
+
+    // SCENE 1 — 0..4000
+    showScene('s1');
+    fadeIn('s1e', 300);
+    fadeIn('s1h', 700);
+    fadeIn('s1s', 1600);
+    setTimeout(() => hideScene('s1'), 3600);
+
+    // SCENE 2 — 4200..9200
+    setTimeout(() => {
+      showScene('s2');
+      fadeIn('s2l', 4300);
+      showCard('c1', 4600);
+      showCard('c2', 5100);
+      showCard('c3', 5600);
+      fadeIn('s2q', 7000);
+    }, 4200);
+    setTimeout(() => hideScene('s2'), 8800);
+
+    // SCENE 3 — 9200..13500
+    setTimeout(() => {
+      showScene('s3');
+      setTimeout(() => {
+        const g = document.getElementById('s3g');
+        if (g) g.style.opacity = '1';
+      }, 9700);
+      setTimeout(() => fadeIn('s3t', 9800), 0);
+      setTimeout(() => fadeIn('s3s', 11200), 0);
+    }, 9200);
+    setTimeout(() => hideScene('s3'), 13100);
+
+    // SCENE 4 — 13500..19500
+    setTimeout(() => {
+      showScene('s4');
+      setTimeout(() => {
+        const b = document.getElementById('s4b');
+        if (b) { b.style.opacity = '1'; b.style.transform = 'scale(1)'; }
+      }, 13800);
+      showCard('k1', 14700);
+      showCard('k2', 15500);
+      showCard('k3', 16300);
+      showCard('k4', 17100);
+    }, 13500);
+    setTimeout(() => hideScene('s4'), 19100);
+
+    // SCENE 5 — 19500..24000
+    setTimeout(() => {
+      showScene('s5');
+      fadeIn('s5a', 19800);
+      fadeIn('s5m', 20300);
+      fadeIn('s5t', 21400);
+      setTimeout(() => {
+        const b = document.getElementById('s5bar');
+        if (b) b.classList.add('grow');
+      }, 22000);
+    }, 19500);
+
+    // ── Audio synthesis ──────────────────────────────────────────────────────────
+
+    async function buildAudio() {
+      const SR = 22050;
+      const dur = DURACION_MS / 1000;
+      const ctx = new OfflineAudioContext(1, SR * dur, SR);
+
+      function osc(type, freq, start, end, vol, bend = 0) {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = type;
+        o.frequency.value = freq;
+        if (bend) o.frequency.linearRampToValueAtTime(freq + bend, start + (end - start) * 0.5);
+        g.gain.setValueAtTime(0, start);
+        g.gain.linearRampToValueAtTime(vol, start + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.0001, end);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(start); o.stop(end + 0.1);
+      }
+
+      function noiseBurst(start, dur, vol, loFreq, hiFreq) {
+        const len = Math.floor(SR * dur);
+        const buf = ctx.createBuffer(1, len, SR);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const f = ctx.createBiquadFilter();
+        f.type = 'bandpass';
+        f.frequency.value = (loFreq + hiFreq) / 2;
+        f.Q.value = 0.8;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, start);
+        g.gain.linearRampToValueAtTime(vol, start + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+        src.connect(f); f.connect(g); g.connect(ctx.destination);
+        src.start(start); src.stop(start + dur + 0.1);
+      }
+
+      // S1 (0–4s): industrial ambient, low tension drone
+      osc('sine', 55, 0, 4.2, 0.09);
+      osc('sine', 82, 0, 4.2, 0.04);
+      osc('sawtooth', 110, 0.5, 4.0, 0.01);
+      noiseBurst(0, 4, 0.018, 80, 350);
+
+      // S2 (4.2–9.2s): typewriter clicks, paper sounds
+      for (let i = 0; i < 14; i++) {
+        const tc = 4.4 + i * 0.32 + (Math.random() * 0.06 - 0.03);
+        noiseBurst(tc, 0.035, 0.14, 2500, 8000);
+        osc('square', 700 + Math.random() * 350, tc, tc + 0.025, 0.04);
+      }
+      osc('sine', 55, 4.2, 9.2, 0.06);
+      noiseBurst(4.2, 5, 0.012, 100, 400);
+
+      // S3 (9.2–13.5s): heavy thud at 9.7s, silence
+      const tT = 9.7;
+      osc('sine', 38, tT, tT + 1.0, 0.4);
+      osc('sine', 62, tT, tT + 0.5, 0.2);
+      noiseBurst(tT, 0.12, 0.35, 40, 200);
+      osc('sine', 28, tT, tT + 1.4, 0.18, -10);
+      // Residual low hum, then silence
+      osc('sine', 48, tT + 1.2, 13.5, 0.025);
+
+      // S4 (13.5–19.5s): boot-up tones + verification beeps
+      osc('sine', 440, 13.7, 14.1, 0.13);
+      osc('sine', 660, 13.85, 14.25, 0.1);
+      osc('sine', 880, 14.0, 14.35, 0.08);
+      [14.8, 15.6, 16.4, 17.2].forEach(tc => {
+        osc('sine', 1047, tc, tc + 0.14, 0.1);
+        osc('sine', 1319, tc + 0.05, tc + 0.18, 0.07);
+      });
+      osc('sine', 220, 14.3, 19.5, 0.035);
+      osc('sine', 330, 14.5, 19.5, 0.025);
+
+      // S5 (19.5–24s): warm resolution chord (C major)
+      const cs = 20.0;
+      osc('sine', 261.63, cs, 24, 0.11);
+      osc('sine', 329.63, cs + 0.12, 24, 0.09);
+      osc('sine', 392.00, cs + 0.24, 24, 0.08);
+      osc('sine', 523.25, cs + 0.36, 24, 0.055);
+      // fade out last 1.5s
+      const fadeG = ctx.createGain();
+      fadeG.gain.setValueAtTime(1, 22.5);
+      fadeG.gain.linearRampToValueAtTime(0, 24);
+      fadeG.connect(ctx.destination);
+
+      const rendered = await ctx.startRendering();
+
+      // AudioBuffer → WAV → base64
+      const nc = rendered.numberOfChannels;
+      const ns = rendered.length;
+      const bps = 16;
+      const ba = nc * bps / 8;
+      const dataSize = ns * ba;
+      const wb = new ArrayBuffer(44 + dataSize);
+      const v = new DataView(wb);
+      const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+      ws(0, 'RIFF'); v.setUint32(4, 36 + dataSize, true);
+      ws(8, 'WAVE'); ws(12, 'fmt ');
+      v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+      v.setUint16(22, nc, true); v.setUint32(24, SR, true);
+      v.setUint32(28, SR * ba, true); v.setUint16(32, ba, true);
+      v.setUint16(34, bps, true); ws(36, 'data');
+      v.setUint32(40, dataSize, true);
+      let off = 44;
+      for (let i = 0; i < ns; i++) {
+        for (let c = 0; c < nc; c++) {
+          const s = Math.max(-1, Math.min(1, rendered.getChannelData(c)[i]));
+          v.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+          off += 2;
+        }
+      }
+
+      const bytes = new Uint8Array(wb);
+      let bin = '';
+      for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    }
+
+    buildAudio().then(b64 => {
+      window.__GSD_EMBED_AUDIO_BASE64 = b64;
+      window.__GSD_EMBED_AUDIO_MIME = 'audio/wav';
+    }).catch(e => console.warn('audio failed', e));
+
+    // ── gsd:done ─────────────────────────────────────────────────────────────────
+    setTimeout(() => {
+      window.parent.postMessage({ type: 'gsd:done' }, '*');
+    }, DURACION_MS);
+  </script>
+</body>
+</html>

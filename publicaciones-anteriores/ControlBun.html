@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1080"/>
+<title>ControlBun — Reel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #111;
+  font-family: 'Inter', system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#canvas {
+  width: 1080px;
+  height: 1920px;
+  position: relative;
+  background: #0a0a0a;
+  overflow: hidden;
+  transform-origin: center center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+/* ── scene base ── */
+.scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.scene.active { opacity: 1; pointer-events: auto; }
+
+/* ── grid bg ── */
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(oklch(0.26 0.012 250) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.26 0.012 250) 1px, transparent 1px);
+  background-size: 80px 80px;
+  opacity: 0.28;
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
+}
+
+/* ── progress bar ── */
+#progress-bar {
+  position: absolute;
+  bottom: 80px;
+  left: 60px; right: 60px;
+  height: 3px;
+  background: oklch(0.26 0.012 250);
+  border-radius: 2px;
+  z-index: 100;
+}
+#progress-fill {
+  height: 100%;
+  width: 0%;
+  background: oklch(0.82 0.18 145);
+  border-radius: 2px;
+  transition: width 100ms linear;
+}
+
+/* ── brand watermark ── */
+#brand {
+  position: absolute;
+  bottom: 110px;
+  right: 60px;
+  display: flex; align-items: center; gap: 10px;
+  opacity: 0.7;
+  z-index: 100;
+}
+#brand .cb-box {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: linear-gradient(135deg, oklch(0.82 0.18 145), oklch(0.65 0.16 175));
+  display: grid; place-items: center;
+  color: #001a0a; font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; font-size: 11px;
+}
+#brand .cb-name {
+  font-size: 16px; font-weight: 600; color: oklch(0.97 0.005 250);
+}
+#brand .cb-name span { color: oklch(0.82 0.18 145); }
+
+/* ── scene tag ── */
+.scene-tag {
+  display: inline-flex; align-items: center; gap: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px; color: oklch(0.58 0.014 250);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.scene-tag::before {
+  content: '';
+  display: inline-block; width: 32px; height: 1px;
+  background: oklch(0.82 0.18 145);
+}
+
+/* ── animated elements ── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+@keyframes lineGrow {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+@keyframes pktMove {
+  from { left: 0%; opacity: 0.8; }
+  to   { left: 95%; opacity: 0; }
+}
+@keyframes pulseGreen {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.82 0.18 145 / 0.4); }
+  50%       { box-shadow: 0 0 0 12px oklch(0.82 0.18 145 / 0); }
+}
+
+.anim-delay-0  { animation-delay: 0s; }
+.anim-delay-1  { animation-delay: 0.15s; }
+.anim-delay-2  { animation-delay: 0.3s; }
+.anim-delay-3  { animation-delay: 0.45s; }
+.anim-delay-4  { animation-delay: 0.6s; }
+.anim-delay-5  { animation-delay: 0.75s; }
+.anim-delay-6  { animation-delay: 0.9s; }
+.anim-delay-7  { animation-delay: 1.05s; }
+.anim-delay-8  { animation-delay: 1.2s; }
+.anim-delay-9  { animation-delay: 1.35s; }
+</style>
+</head>
+<body>
+<div id="canvas">
+
+<!-- ═══════════════════════════════════════════════════
+     S1 — Hook: Llegás a la planta (0 – 4.5s)
+══════════════════════════════════════════════════════ -->
+<div class="scene active" id="s1">
+  <div class="bg-grid"></div>
+  <!-- accent glow -->
+  <div style="position:absolute;top:0;left:0;right:0;height:600px;
+    background:radial-gradient(ellipse 900px 500px at 50% 0%, oklch(0.82 0.18 145 / 0.08), transparent 70%);"></div>
+
+  <!-- scene tag -->
+  <div style="position:absolute;left:80px;top:200px;
+    animation:fadeSlideUp 0.5s ease both;">
+    <div class="scene-tag">07:42 · Acceso de personal</div>
+  </div>
+
+  <!-- main headline -->
+  <div style="position:absolute;left:80px;right:80px;top:300px;">
+    <div style="font-size:130px;font-weight:800;letter-spacing:-0.04em;line-height:1;color:oklch(0.97 0.005 250);
+      animation:fadeSlideUp 0.6s ease both;animation-delay:0.1s;opacity:0;">
+      Llegás a la planta
+    </div>
+    <div style="font-size:130px;font-weight:800;letter-spacing:-0.04em;line-height:1;color:oklch(0.78 0.012 250);
+      margin-top:10px;
+      animation:fadeSlideUp 0.6s ease both;animation-delay:0.3s;opacity:0;">
+      de <span style="color:oklch(0.82 0.18 145)">Ramallo.</span>
+    </div>
+  </div>
+
+  <!-- sub copy -->
+  <div style="position:absolute;left:80px;right:80px;top:800px;
+    font-size:38px;color:oklch(0.78 0.012 250);line-height:1.5;
+    animation:fadeSlideUp 0.6s ease both;animation-delay:0.55s;opacity:0;">
+    Y el de seguridad te dice que <b style="color:oklch(0.97 0.005 250);">no podés entrar</b><br/>
+    hasta que mandes la documentación.
+  </div>
+
+  <!-- industrial visual card -->
+  <div style="position:absolute;left:80px;right:80px;top:1020px;height:620px;
+    border:1px solid oklch(0.32 0.014 250);border-radius:24px;overflow:hidden;
+    background:linear-gradient(180deg,oklch(0.22 0.012 240) 0%,oklch(0.14 0.012 250) 100%);
+    animation:scaleIn 0.6s ease both;animation-delay:0.4s;opacity:0;">
+    <!-- caution stripes -->
+    <div style="height:24px;background:repeating-linear-gradient(45deg,oklch(0.85 0.16 80) 0 16px,#1a1408 16px 32px);"></div>
+    <!-- silo SVG -->
+    <svg viewBox="0 0 920 560" width="100%" height="500" style="display:block;">
+      <defs>
+        <linearGradient id="silo-g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="oklch(0.16 0.012 250)"/>
+          <stop offset="1" stop-color="oklch(0.10 0.012 250)"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="420" width="920" height="140" fill="oklch(0.08 0.01 250)"/>
+      <rect x="100" y="160" width="44" height="260" fill="url(#silo-g)"/>
+      <rect x="95" y="152" width="54" height="14" fill="oklch(0.20 0.014 250)"/>
+      <rect x="260" y="240" width="80" height="180" fill="url(#silo-g)"/>
+      <rect x="342" y="220" width="90" height="200" fill="url(#silo-g)"/>
+      <rect x="434" y="250" width="80" height="170" fill="url(#silo-g)"/>
+      <ellipse cx="300" cy="242" rx="40" ry="15" fill="oklch(0.20 0.014 250)"/>
+      <ellipse cx="387" cy="222" rx="45" ry="17" fill="oklch(0.20 0.014 250)"/>
+      <ellipse cx="474" cy="252" rx="40" ry="15" fill="oklch(0.20 0.014 250)"/>
+      <rect x="680" y="200" width="32" height="220" fill="url(#silo-g)"/>
+      <polygon points="0,380 0,420 920,420 920,360 820,320 100,320 0,380" fill="oklch(0.13 0.012 250)"/>
+      <circle cx="122" cy="156" r="4" fill="oklch(0.85 0.18 30)"/>
+      <circle cx="696" cy="206" r="4" fill="oklch(0.85 0.18 30)"/>
+      <ellipse cx="124" cy="138" rx="26" ry="12" fill="oklch(0.40 0.01 250)" opacity="0.35"/>
+      <ellipse cx="140" cy="118" rx="32" ry="14" fill="oklch(0.40 0.01 250)" opacity="0.25"/>
+    </svg>
+    <!-- acceso badge -->
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-3deg);
+      padding:14px 32px;border:3px solid oklch(0.85 0.16 80);
+      color:oklch(0.85 0.16 80);font-family:'JetBrains Mono',monospace;
+      font-size:18px;font-weight:700;letter-spacing:0.14em;
+      background:oklch(0.10 0.01 250 / 0.8);backdrop-filter:blur(3px);">
+      ACCESO · RESTRINGIDO
+    </div>
+    <div style="height:24px;background:repeating-linear-gradient(45deg,oklch(0.85 0.16 80) 0 16px,#1a1408 16px 32px);position:absolute;bottom:0;left:0;right:0;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     S2 — Te piden 20 documentos (4.5 – 9s)
+══════════════════════════════════════════════════════ -->
+<div class="scene" id="s2">
+  <div class="bg-grid"></div>
+
+  <div style="position:absolute;left:80px;top:200px;
+    animation:fadeSlideUp 0.5s ease both;opacity:0;">
+    <div class="scene-tag">El check-in del contratista</div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:290px;
+    font-size:110px;font-weight:800;letter-spacing:-0.04em;line-height:1.05;
+    color:oklch(0.97 0.005 250);
+    animation:fadeSlideUp 0.6s ease both;animation-delay:0.1s;opacity:0;">
+    Te piden<br/>
+    <span style="color:oklch(0.70 0.20 25)">20 documentos</span><br/>
+    antes de pisar<br/>la obra.
+  </div>
+
+  <!-- doc list -->
+  <div style="position:absolute;left:80px;right:80px;top:860px;
+    display:flex;flex-direction:column;gap:10px;">
+    <style>
+      .doc-row {
+        display:flex;align-items:center;gap:14px;padding:16px 20px;
+        background:oklch(0.18 0.012 250);border:1px solid oklch(0.26 0.012 250);
+        border-radius:12px;font-size:24px;color:oklch(0.78 0.012 250);
+        animation:fadeSlideLeft 0.4s ease both;opacity:0;
+      }
+      .doc-num {
+        font-family:'JetBrains Mono',monospace;font-size:15px;
+        color:oklch(0.42 0.014 250);width:32px;flex-shrink:0;
+      }
+      .doc-tag-err {
+        font-family:'JetBrains Mono',monospace;font-size:13px;
+        padding:3px 10px;border-radius:999px;margin-left:auto;
+        background:oklch(0.70 0.20 25 / 0.12);color:oklch(0.70 0.20 25);
+        border:1px solid oklch(0.70 0.20 25 / 0.3);flex-shrink:0;
+      }
+    </style>
+    <div class="doc-row anim-delay-0"><span class="doc-num">01</span> Recibo de sueldo <span class="doc-tag-err">pendiente</span></div>
+    <div class="doc-row anim-delay-1"><span class="doc-num">02</span> Formulario 931 <span class="doc-tag-err">pendiente</span></div>
+    <div class="doc-row anim-delay-2"><span class="doc-num">03</span> Constancia ARCA <span class="doc-tag-err">pendiente</span></div>
+    <div class="doc-row anim-delay-3"><span class="doc-num">04</span> Examen médico <span class="doc-tag-err">pendiente</span></div>
+    <div class="doc-row anim-delay-4"><span class="doc-num">05</span> Póliza ART <span class="doc-tag-err">pendiente</span></div>
+    <div class="doc-row anim-delay-5"><span class="doc-num">06</span> Curso seguridad <span class="doc-tag-err">pendiente</span></div>
+  </div>
+
+  <!-- +14 más -->
+  <div style="position:absolute;right:80px;top:1560px;text-align:right;
+    animation:fadeSlideUp 0.5s ease both;animation-delay:1.2s;opacity:0;">
+    <div style="font-size:110px;font-weight:800;letter-spacing:-0.04em;
+      background:linear-gradient(180deg,oklch(0.97 0.005 250),oklch(0.58 0.014 250));
+      -webkit-background-clip:text;background-clip:text;color:transparent;line-height:0.9;">
+      +14
+    </div>
+    <div style="font-size:28px;color:oklch(0.78 0.012 250);font-weight:500;">más, según el cliente</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:16px;
+      color:oklch(0.58 0.014 250);margin-top:8px;letter-spacing:0.04em;">
+      cada planta tiene su propio formulario
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     S3 — La salida vieja: caos (9 – 13s)
+══════════════════════════════════════════════════════ -->
+<div class="scene" id="s3">
+  <div class="bg-grid"></div>
+
+  <div style="position:absolute;left:80px;top:200px;
+    animation:fadeSlideUp 0.5s ease both;opacity:0;">
+    <div class="scene-tag">Hasta hoy</div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:290px;
+    font-size:100px;font-weight:800;letter-spacing:-0.04em;line-height:1.05;
+    color:oklch(0.97 0.005 250);
+    animation:fadeSlideUp 0.6s ease both;animation-delay:0.1s;opacity:0;">
+    Buscar la<br/>página correcta.<br/>
+    <span style="color:oklch(0.58 0.014 250)">Subir uno<br/>por uno.</span>
+  </div>
+
+  <!-- chaotic tabs -->
+  <style>
+    .chaos-tab {
+      position:absolute;
+      width:880px;height:100px;
+      background:oklch(0.18 0.012 250);
+      border:1px solid oklch(0.32 0.014 250);
+      border-radius:14px;padding:16px 20px;
+      box-shadow:0 12px 40px rgba(0,0,0,0.5);
+      display:flex;align-items:center;gap:16px;
+      animation:popIn 0.4s ease both;opacity:0;
+    }
+    .mac-dots { display:flex;gap:6px; }
+    .mac-dots i { width:12px;height:12px;border-radius:6px;display:inline-block; }
+    .tab-info { min-width:0; }
+    .tab-url {
+      font-family:'JetBrains Mono',monospace;font-size:16px;
+      color:oklch(0.97 0.005 250);font-weight:500;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .tab-user {
+      font-family:'JetBrains Mono',monospace;font-size:13px;
+      color:oklch(0.58 0.014 250);margin-top:4px;
+    }
+  </style>
+
+  <!-- tab 1 -->
+  <div class="chaos-tab anim-delay-0" style="left:80px;top:870px;transform:rotate(-2deg);">
+    <div class="mac-dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+    <div class="tab-info" style="min-width:0;overflow:hidden;">
+      <div class="tab-url">controldocumentario.com</div>
+      <div class="tab-user">usuario_ramallo</div>
+    </div>
+  </div>
+
+  <!-- tab 2 -->
+  <div class="chaos-tab anim-delay-2" style="left:120px;top:1000px;transform:rotate(2.5deg);">
+    <div class="mac-dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+    <div class="tab-info" style="min-width:0;overflow:hidden;">
+      <div class="tab-url">sgaweb.gestion.com.ar</div>
+      <div class="tab-user">contratista_77</div>
+    </div>
+  </div>
+
+  <!-- tab 3 -->
+  <div class="chaos-tab anim-delay-3" style="left:60px;top:1130px;transform:rotate(-1.5deg);">
+    <div class="mac-dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+    <div class="tab-info" style="min-width:0;overflow:hidden;">
+      <div class="tab-url">altapersonal.empresa.com</div>
+      <div class="tab-user">jperez_acceso</div>
+    </div>
+  </div>
+
+  <!-- tab 4: email -->
+  <div class="chaos-tab anim-delay-4" style="left:100px;top:1260px;transform:rotate(3deg);">
+    <div class="mac-dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+    <div class="tab-info" style="min-width:0;overflow:hidden;">
+      <div class="tab-url">📧 rrhh@cliente.com</div>
+      <div class="tab-user">— password ?</div>
+    </div>
+  </div>
+
+  <!-- tab 5: whatsapp -->
+  <div class="chaos-tab anim-delay-5" style="left:80px;top:1390px;transform:rotate(-2.5deg);">
+    <div class="mac-dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+    <div class="tab-info" style="min-width:0;overflow:hidden;">
+      <div class="tab-url">💬 WhatsApp +54 11...</div>
+      <div class="tab-user">enviado 09:48 · sin respuesta</div>
+    </div>
+  </div>
+
+  <!-- caos label -->
+  <div style="position:absolute;left:80px;bottom:180px;right:80px;text-align:center;
+    animation:fadeSlideUp 0.5s ease both;animation-delay:1.5s;opacity:0;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;color:oklch(0.58 0.014 250);
+      letter-spacing:0.06em;border:1px solid oklch(0.32 0.014 250);
+      padding:14px 24px;border-radius:999px;display:inline-block;">
+      ⏳ horas perdidas en cada ingreso
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     S4 — Telegram: la nueva forma (13 – 20s)
+══════════════════════════════════════════════════════ -->
+<div class="scene" id="s4">
+  <div style="position:absolute;inset:0;
+    background:radial-gradient(ellipse 900px 800px at 50% 40%,oklch(0.82 0.18 145 / 0.09),transparent 60%);"></div>
+  <div class="bg-grid"></div>
+
+  <div style="position:absolute;left:80px;top:200px;
+    animation:fadeSlideUp 0.5s ease both;opacity:0;">
+    <div class="scene-tag">La nueva forma</div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:290px;
+    font-size:110px;font-weight:800;letter-spacing:-0.04em;line-height:1.05;
+    color:oklch(0.97 0.005 250);
+    animation:fadeSlideUp 0.6s ease both;animation-delay:0.1s;opacity:0;">
+    Mandás el PDF<br/>
+    <span style="color:oklch(0.82 0.18 145)">por Telegram.</span>
+  </div>
+
+  <!-- Telegram phone mockup -->
+  <div style="position:absolute;left:80px;right:80px;top:680px;
+    background:oklch(0.14 0.012 250);border:1px solid oklch(0.32 0.014 250);
+    border-radius:32px;overflow:hidden;
+    animation:scaleIn 0.6s ease both;animation-delay:0.3s;opacity:0;">
+
+    <!-- TG header -->
+    <div style="background:oklch(0.20 0.014 250);padding:20px 24px;
+      display:flex;align-items:center;gap:16px;
+      border-bottom:1px solid oklch(0.26 0.012 250);">
+      <div style="width:48px;height:48px;border-radius:50%;
+        background:linear-gradient(135deg,oklch(0.55 0.18 220),oklch(0.40 0.16 240));
+        display:grid;place-items:center;
+        font-family:'JetBrains Mono',monospace;font-size:18px;color:#fff;font-weight:700;">CB</div>
+      <div>
+        <div style="font-size:20px;font-weight:600;color:oklch(0.97 0.005 250);">ControlBumBot</div>
+        <div style="font-size:15px;color:oklch(0.82 0.18 145);">● en línea</div>
+      </div>
+    </div>
+
+    <!-- messages -->
+    <div style="padding:24px 20px;display:flex;flex-direction:column;gap:14px;min-height:900px;">
+
+      <!-- me: file -->
+      <div style="align-self:flex-end;max-width:85%;
+        background:oklch(0.35 0.12 220);border-radius:20px;border-bottom-right-radius:4px;
+        padding:16px 18px;display:flex;align-items:center;gap:14px;
+        animation:fadeSlideUp 0.4s ease both;animation-delay:0.6s;opacity:0;">
+        <div style="width:44px;height:52px;background:oklch(0.70 0.20 25);
+          border-radius:8px;display:grid;place-items:center;
+          font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">PDF</div>
+        <div>
+          <div style="font-size:17px;font-weight:600;color:#fff;">recibos_marzo_2026.pdf</div>
+          <div style="font-size:14px;color:oklch(0.97 0.005 250 / 0.6);margin-top:3px;">8.2 MB · 24 págs</div>
+        </div>
+        <div style="font-size:13px;color:oklch(0.97 0.005 250 / 0.5);margin-left:auto;align-self:flex-end;">14:32 ✓✓</div>
+      </div>
+
+      <!-- bot: recibido -->
+      <div style="align-self:flex-start;max-width:80%;
+        background:oklch(0.26 0.014 250);border-radius:20px;border-bottom-left-radius:4px;
+        padding:14px 18px;font-size:18px;color:oklch(0.97 0.005 250);
+        animation:fadeSlideUp 0.4s ease both;animation-delay:1.1s;opacity:0;">
+        Recibido ✓ Empiezo a procesar.
+        <div style="font-size:13px;color:oklch(0.58 0.014 250);margin-top:4px;text-align:right;">14:32</div>
+      </div>
+
+      <!-- bot: typing -->
+      <div style="align-self:flex-start;
+        background:oklch(0.26 0.014 250);border-radius:20px;border-bottom-left-radius:4px;
+        padding:16px 22px;display:inline-flex;gap:7px;align-items:center;
+        animation:fadeSlideUp 0.4s ease both;animation-delay:1.7s;opacity:0;" id="typing-bubble">
+        <i style="width:9px;height:9px;border-radius:50%;background:oklch(0.58 0.014 250);display:inline-block;
+          animation:typing-dot 1.2s ease infinite;animation-delay:0s;"></i>
+        <i style="width:9px;height:9px;border-radius:50%;background:oklch(0.58 0.014 250);display:inline-block;
+          animation:typing-dot 1.2s ease infinite;animation-delay:0.3s;"></i>
+        <i style="width:9px;height:9px;border-radius:50%;background:oklch(0.58 0.014 250);display:inline-block;
+          animation:typing-dot 1.2s ease infinite;animation-delay:0.6s;"></i>
+      </div>
+
+      <!-- bot: detecté -->
+      <div style="align-self:flex-start;max-width:80%;
+        background:oklch(0.26 0.014 250);border-radius:20px;border-bottom-left-radius:4px;
+        padding:14px 18px;font-size:18px;color:oklch(0.97 0.005 250);
+        animation:fadeSlideUp 0.4s ease both;animation-delay:2.5s;opacity:0;">
+        Detecté 6 personas en el lote. Identificando documentos…
+        <div style="font-size:13px;color:oklch(0.58 0.014 250);margin-top:4px;text-align:right;">14:33</div>
+      </div>
+
+      <!-- bot: resumen -->
+      <div style="align-self:flex-start;width:95%;
+        background:oklch(0.22 0.014 250);border:1px solid oklch(0.26 0.012 250);
+        border-radius:20px;border-bottom-left-radius:4px;padding:18px 20px;
+        animation:fadeSlideUp 0.5s ease both;animation-delay:3.4s;opacity:0;">
+        <div style="font-weight:700;font-size:19px;margin-bottom:14px;color:oklch(0.97 0.005 250);">
+          ✅ Resumen del lote
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <style>
+            .res-row {
+              display:flex;justify-content:space-between;align-items:center;
+              font-family:'JetBrains Mono',monospace;font-size:15px;
+              padding:9px 0;border-top:1px solid oklch(0.26 0.012 250);
+            }
+            .res-row:first-of-type { border-top:none; }
+            .ok-tag {
+              font-size:13px;padding:3px 10px;border-radius:999px;
+              background:oklch(0.82 0.18 145 / 0.15);color:oklch(0.82 0.18 145);
+              border:1px solid oklch(0.82 0.18 145 / 0.3);
+            }
+          </style>
+          <div class="res-row"><span style="color:oklch(0.78 0.012 250)">Rodríguez, Marina · Recibo</span><span class="ok-tag">✓ OK</span></div>
+          <div class="res-row"><span style="color:oklch(0.78 0.012 250)">Pereyra, Diego · F.931</span><span class="ok-tag">✓ OK</span></div>
+          <div class="res-row"><span style="color:oklch(0.78 0.012 250)">Gómez, Lucía · Constancia</span><span class="ok-tag">✓ OK</span></div>
+          <div class="res-row"><span style="color:oklch(0.78 0.012 250)">Acuña, Federico · ART</span><span class="ok-tag">✓ OK</span></div>
+          <div class="res-row"><span style="color:oklch(0.78 0.012 250)">Vera, Camila · Recibo</span><span class="ok-tag">✓ OK</span></div>
+          <div class="res-row"><span style="color:oklch(0.78 0.012 250)">Suárez, Martín · F.931</span><span class="ok-tag">✓ OK</span></div>
+          <div class="res-row" style="border-top:1px solid oklch(0.32 0.014 250);margin-top:8px;padding-top:12px;font-weight:700;">
+            <span style="color:oklch(0.97 0.005 250)">Total</span>
+            <span><span style="color:oklch(0.82 0.18 145)">21 OK</span> · <span style="color:oklch(0.58 0.014 250)">0 err</span></span>
+          </div>
+        </div>
+        <div style="font-size:13px;color:oklch(0.58 0.014 250);margin-top:10px;text-align:right;">14:33</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     S5 — Sube solo a la plataforma (20 – 24.5s)
+══════════════════════════════════════════════════════ -->
+<div class="scene" id="s5">
+  <div class="bg-grid"></div>
+
+  <div style="position:absolute;left:80px;top:200px;
+    animation:fadeSlideUp 0.5s ease both;opacity:0;">
+    <div class="scene-tag">Sin que abras una pestaña</div>
+  </div>
+
+  <div style="position:absolute;left:80px;right:80px;top:290px;
+    font-size:110px;font-weight:800;letter-spacing:-0.04em;line-height:1.05;
+    color:oklch(0.97 0.005 250);
+    animation:fadeSlideUp 0.6s ease both;animation-delay:0.1s;opacity:0;">
+    Sube solo a la<br/>
+    plataforma<br/>
+    <span style="color:oklch(0.82 0.18 145)">del cliente.</span>
+  </div>
+
+  <!-- phone mini -->
+  <div style="position:absolute;left:80px;top:900px;width:280px;height:360px;
+    background:oklch(0.10 0.01 250);border:1px solid oklch(0.32 0.014 250);
+    border-radius:24px;padding:10px;
+    animation:scaleIn 0.5s ease both;animation-delay:0.3s;opacity:0;">
+    <div style="background:oklch(0.18 0.012 250);border-radius:16px;height:100%;
+      padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;
+      color:oklch(0.58 0.014 250);display:flex;flex-direction:column;gap:10px;">
+      <div style="color:oklch(0.82 0.18 145);font-size:14px;">● ControlBum</div>
+      <div style="background:oklch(0.26 0.014 250);border-radius:10px;padding:12px;color:oklch(0.78 0.012 250);font-size:13px;">
+        ✓ Listo en planta<br/>
+        <span style="color:oklch(0.82 0.18 145);font-weight:700;">20 / 20 OK</span>
+      </div>
+      <div style="font-size:11px;color:oklch(0.42 0.014 250);">Subiendo a portal…</div>
+    </div>
+  </div>
+
+  <!-- connection line -->
+  <div style="position:absolute;left:380px;top:1070px;right:80px;height:6px;
+    animation:fadeSlideUp 0.4s ease both;animation-delay:0.5s;opacity:0;">
+    <div style="position:relative;height:100%;overflow:hidden;border-radius:3px;
+      background:oklch(0.26 0.012 250);">
+      <div style="height:100%;background:linear-gradient(90deg,oklch(0.82 0.18 145),oklch(0.65 0.16 175));
+        border-radius:3px;animation:lineGrow 1.2s ease both;animation-delay:0.8s;"></div>
+    </div>
+    <!-- moving packets -->
+    <div style="position:absolute;top:-4px;width:12px;height:14px;border-radius:3px;
+      background:oklch(0.82 0.18 145);box-shadow:0 0 8px oklch(0.82 0.18 145 / 0.6);
+      animation:pktMove 1.4s linear infinite;animation-delay:1.2s;"></div>
+    <div style="position:absolute;top:-4px;width:12px;height:14px;border-radius:3px;
+      background:oklch(0.82 0.18 145);box-shadow:0 0 8px oklch(0.82 0.18 145 / 0.6);
+      animation:pktMove 1.4s linear infinite;animation-delay:1.7s;"></div>
+    <!-- arrow -->
+    <div style="position:absolute;right:-6px;top:-8px;width:0;height:0;
+      border-left:16px solid oklch(0.65 0.16 175);
+      border-top:11px solid transparent;border-bottom:11px solid transparent;"></div>
+  </div>
+
+  <!-- platform window -->
+  <div style="position:absolute;left:80px;right:80px;top:1160px;
+    background:oklch(0.18 0.012 250);border:1px solid oklch(0.32 0.014 250);
+    border-radius:18px;overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,0.5);
+    animation:scaleIn 0.5s ease both;animation-delay:0.5s;opacity:0;">
+    <!-- browser chrome -->
+    <div style="background:oklch(0.14 0.012 250);padding:14px 18px;
+      display:flex;align-items:center;gap:10px;border-bottom:1px solid oklch(0.22 0.014 250);">
+      <div style="display:flex;gap:6px;">
+        <i style="width:12px;height:12px;border-radius:6px;background:#ff5f57;display:inline-block;"></i>
+        <i style="width:12px;height:12px;border-radius:6px;background:#febc2e;display:inline-block;"></i>
+        <i style="width:12px;height:12px;border-radius:6px;background:#28c840;display:inline-block;"></i>
+      </div>
+      <div style="flex:1;background:oklch(0.10 0.01 250);border:1px solid oklch(0.22 0.014 250);
+        border-radius:8px;padding:7px 14px;
+        font-family:'JetBrains Mono',monospace;font-size:14px;color:oklch(0.78 0.012 250);
+        display:flex;align-items:center;gap:8px;">
+        🔒 <span style="filter:blur(4px);user-select:none;">portal.cliente.com.ar</span><span style="color:oklch(0.42 0.014 250);">/contratistas</span>
+      </div>
+    </div>
+    <!-- platform nav -->
+    <div style="background:oklch(0.20 0.014 250);padding:12px 20px;
+      display:flex;gap:28px;border-bottom:1px solid oklch(0.22 0.014 250);">
+      <span style="font-size:15px;color:oklch(0.58 0.014 250);">Inicio</span>
+      <span style="font-size:15px;color:oklch(0.58 0.014 250);">Contratistas</span>
+      <span style="font-size:15px;color:oklch(0.97 0.005 250);font-weight:600;
+        border-bottom:2px solid oklch(0.65 0.16 25);padding-bottom:4px;">Documentación</span>
+    </div>
+    <!-- doc rows -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:oklch(0.22 0.014 250);">
+      <style>
+        .plat-row {
+          background:oklch(0.18 0.012 250);padding:14px 16px;
+          display:flex;justify-content:space-between;align-items:center;font-size:16px;
+        }
+        .ok-pill {
+          font-family:'JetBrains Mono',monospace;font-size:12px;
+          padding:3px 10px;border-radius:999px;
+          background:oklch(0.82 0.18 145 / 0.12);color:oklch(0.82 0.18 145);
+          border:1px solid oklch(0.82 0.18 145 / 0.3);
+          animation:pulseGreen 1.5s ease infinite;
+        }
+      </style>
+      <div class="plat-row"><span style="color:oklch(0.97 0.005 250);">Recibo sueldo</span><span class="ok-pill">✓</span></div>
+      <div class="plat-row"><span style="color:oklch(0.97 0.005 250);">F. 931</span><span class="ok-pill">✓</span></div>
+      <div class="plat-row"><span style="color:oklch(0.97 0.005 250);">Constancia ARCA</span><span class="ok-pill">✓</span></div>
+      <div class="plat-row"><span style="color:oklch(0.97 0.005 250);">Examen médico</span><span class="ok-pill">✓</span></div>
+      <div class="plat-row"><span style="color:oklch(0.97 0.005 250);">Póliza ART</span><span class="ok-pill">✓</span></div>
+      <div class="plat-row"><span style="color:oklch(0.97 0.005 250);">Curso seguridad</span><span class="ok-pill">✓</span></div>
+    </div>
+    <div style="padding:16px 20px;text-align:right;
+      font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;">
+      <span style="color:oklch(0.82 0.18 145);">20 / 20 cargados</span>
+      <span style="color:oklch(0.58 0.014 250);font-size:13px;margin-left:12px;">0 errores</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     S6 — Cierre (24.5 – 28s)
+══════════════════════════════════════════════════════ -->
+<div class="scene" id="s6">
+  <div style="position:absolute;inset:0;
+    background:radial-gradient(900px 500px at 50% 40%,oklch(0.82 0.18 145 / 0.11),transparent 60%);"></div>
+  <div class="bg-grid"></div>
+
+  <!-- main text -->
+  <div style="position:absolute;left:0;right:0;top:340px;text-align:center;padding:0 60px;">
+    <div style="font-size:120px;font-weight:800;letter-spacing:-0.04em;line-height:1;
+      color:oklch(0.97 0.005 250);
+      animation:fadeSlideUp 0.6s ease both;animation-delay:0.1s;opacity:0;">
+      Concentrate en
+    </div>
+    <div style="font-size:160px;font-weight:800;letter-spacing:-0.05em;line-height:1;
+      color:oklch(0.82 0.18 145);margin-top:10px;
+      animation:fadeSlideUp 0.6s ease both;animation-delay:0.35s;opacity:0;">
+      tu trabajo.
+    </div>
+    <div style="font-size:36px;color:oklch(0.78 0.012 250);margin-top:40px;line-height:1.5;
+      animation:fadeSlideUp 0.5s ease both;animation-delay:0.55s;opacity:0;">
+      ControlBum se encarga<br/>de tus documentos.
+    </div>
+  </div>
+
+  <!-- logo -->
+  <div style="position:absolute;left:0;right:0;top:1020px;
+    display:flex;align-items:center;justify-content:center;gap:20px;
+    animation:scaleIn 0.6s ease both;animation-delay:0.9s;opacity:0;">
+    <div style="width:72px;height:72px;border-radius:18px;
+      background:linear-gradient(135deg,oklch(0.82 0.18 145),oklch(0.65 0.16 175));
+      display:grid;place-items:center;
+      box-shadow:0 12px 32px oklch(0.82 0.18 145 / 0.3);">
+      <svg width="42" height="38" viewBox="0 0 42 38" fill="none">
+        <path d="M2 12 Q2 2 12 2 L30 2 Q40 2 40 12 L40 26 Q40 36 30 36 L12 36 Q2 36 2 26 Z"
+          fill="none" stroke="oklch(0.08 0.01 250)" stroke-width="0"/>
+        <!-- CB styled -->
+        <text x="5" y="28" font-family="JetBrains Mono,monospace" font-weight="700" font-size="22" fill="oklch(0.05 0.01 250)">CB</text>
+      </svg>
+      <span style="position:absolute;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:24px;color:oklch(0.05 0.01 250);">CB</span>
+    </div>
+    <span style="font-size:80px;font-weight:800;letter-spacing:-0.04em;color:oklch(0.97 0.005 250);">
+      Control<span style="color:oklch(0.82 0.18 145)">Bum</span>
+    </span>
+  </div>
+
+  <!-- CTA -->
+  <div style="position:absolute;left:0;right:0;top:1160px;text-align:center;
+    animation:fadeSlideUp 0.5s ease both;animation-delay:1.4s;opacity:0;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:24px;
+      color:oklch(0.58 0.014 250);letter-spacing:0.06em;">
+      @ControlBumBot · controlbum.app
+    </div>
+  </div>
+
+  <!-- benefit list -->
+  <div style="position:absolute;left:80px;right:80px;top:1280px;
+    animation:fadeSlideUp 0.5s ease both;animation-delay:1.1s;opacity:0;">
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div style="display:flex;align-items:center;gap:16px;padding:18px 24px;
+        background:oklch(0.18 0.012 250);border:1px solid oklch(0.26 0.012 250);
+        border-radius:14px;font-size:26px;">
+        <span style="font-size:30px;">📄</span>
+        <span style="color:oklch(0.97 0.005 250);">Un PDF → todo cargado</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding:18px 24px;
+        background:oklch(0.18 0.012 250);border:1px solid oklch(0.26 0.012 250);
+        border-radius:14px;font-size:26px;">
+        <span style="font-size:30px;">🤖</span>
+        <span style="color:oklch(0.97 0.005 250);">IA identifica cada doc</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding:18px 24px;
+        background:oklch(0.18 0.012 250);border:1px solid oklch(0.26 0.012 250);
+        border-radius:14px;font-size:26px;">
+        <span style="font-size:30px;">✅</span>
+        <span style="color:oklch(0.97 0.005 250);">Sube solo, sin portales</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PERSISTENT UI
+══════════════════════════════════════════════════════ -->
+<div id="progress-bar"><div id="progress-fill"></div></div>
+<div id="brand">
+  <div class="cb-box">CB</div>
+  <div class="cb-name">Control<span>Bum</span></div>
+</div>
+
+</div><!-- /canvas -->
+
+<script>
+// ── Auto-scale canvas to fit viewport ───────────────────
+function scaleCanvas() {
+  const canvas = document.getElementById('canvas');
+  const scaleX = window.innerWidth  / 1080;
+  const scaleY = window.innerHeight / 1920;
+  const scale  = Math.min(scaleX, scaleY);
+  canvas.style.transform = `scale(${scale})`;
+}
+scaleCanvas();
+window.addEventListener('resize', scaleCanvas);
+
+// ── Timeline config ──────────────────────────────────────
+const TOTAL_MS = 28000;
+const SCENES = [
+  { id: 's1', start: 0,     end: 4500  },
+  { id: 's2', start: 4500,  end: 9000  },
+  { id: 's3', start: 9000,  end: 13000 },
+  { id: 's4', start: 13000, end: 20000 },
+  { id: 's5', start: 20000, end: 24500 },
+  { id: 's6', start: 24500, end: 28000 },
+];
+
+let startTime = null;
+let rafId = null;
+let currentScene = 0;
+
+const progressFill = document.getElementById('progress-fill');
+
+function showScene(idx) {
+  SCENES.forEach((sc, i) => {
+    const el = document.getElementById(sc.id);
+    if (i === idx) {
+      const clone = el.cloneNode(true);
+      el.parentNode.replaceChild(clone, el);
+      clone.classList.add('active');
+    } else {
+      el.classList.remove('active');
+    }
+  });
+  currentScene = idx;
+}
+
+function tick(ts) {
+  if (!startTime) startTime = ts;
+  const elapsed = ts - startTime;
+  const pct = Math.min(elapsed / TOTAL_MS, 1);
+
+  progressFill.style.width = (pct * 100) + '%';
+
+  // find active scene
+  let newScene = currentScene;
+  for (let i = 0; i < SCENES.length; i++) {
+    if (elapsed >= SCENES[i].start && elapsed < SCENES[i].end) {
+      newScene = i;
+      break;
+    }
+  }
+  if (elapsed >= TOTAL_MS) newScene = SCENES.length - 1;
+
+  if (newScene !== currentScene) {
+    showScene(newScene);
+  }
+
+  if (elapsed >= TOTAL_MS) {
+    // send done signal then loop after 2s
+    window.parent.postMessage({ type: 'gsd:done' }, '*');
+    setTimeout(() => {
+      startTime = null;
+      currentScene = 0;
+      showScene(0);
+      rafId = requestAnimationFrame(tick);
+    }, 2000);
+    return;
+  }
+
+  rafId = requestAnimationFrame(tick);
+}
+
+// start
+showScene(0);
+rafId = requestAnimationFrame(tick);
+</script>
+</body>
+</html>

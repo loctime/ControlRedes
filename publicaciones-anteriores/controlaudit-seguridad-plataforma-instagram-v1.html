@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080">
+  <title>Seguridad en la Plataforma Control</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: #0A0E1A;
+      font-family: 'Inter', sans-serif;
+      color: #FFFFFF;
+    }
+
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(60,181,74,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(60,181,74,0.04) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    .bg-glow {
+      position: absolute;
+      width: 900px;
+      height: 900px;
+      top: 300px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: radial-gradient(circle, rgba(60,181,74,0.07) 0%, transparent 65%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .scanline {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 10%, #3CB54A 50%, transparent 90%);
+      top: 0;
+      opacity: 0;
+      animation: scan 2.5s ease-in-out 0.2s forwards;
+      z-index: 10;
+    }
+
+    @keyframes scan {
+      0%   { top: 0;    opacity: 0; }
+      5%   { opacity: 0.7; }
+      95%  { opacity: 0.7; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 190px 72px 190px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      margin-bottom: 72px;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.4s;
+    }
+
+    .shield-wrap {
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 28px;
+    }
+
+    .tag {
+      font-size: 24px;
+      font-weight: 600;
+      color: #3CB54A;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    h1 {
+      font-size: 78px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -2px;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: #3CB54A;
+    }
+
+    .subtitle {
+      font-size: 30px;
+      color: rgba(255,255,255,0.42);
+      font-weight: 400;
+      margin-top: 18px;
+      letter-spacing: 0.2px;
+    }
+
+    /* ── CARDS ── */
+    .cards {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.038);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 22px;
+      padding: 36px 44px;
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      opacity: 0;
+      transform: translateX(50px);
+      transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
+    }
+
+    .card.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .card-logo {
+      width: 76px;
+      height: 76px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-content { flex: 1; }
+
+    .card-provider {
+      font-size: 20px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .card-title {
+      font-size: 33px;
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .card-detail {
+      font-size: 23px;
+      color: rgba(255,255,255,0.4);
+      font-weight: 400;
+    }
+
+    .card-check {
+      width: 46px;
+      height: 46px;
+      background: #3CB54A;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .card-check.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: 56px;
+      text-align: center;
+      opacity: 0;
+    }
+
+    .footer.visible {
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    .divider {
+      width: 80px;
+      height: 3px;
+      background: #3CB54A;
+      margin: 0 auto 28px;
+      border-radius: 2px;
+    }
+
+    .footer-brand {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .footer-brand em {
+      font-style: normal;
+      color: #3CB54A;
+    }
+
+    .footer-sub {
+      font-size: 24px;
+      color: rgba(255,255,255,0.3);
+      margin-top: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="scanline"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <!-- Shield icon -->
+    <div class="shield-wrap">
+      <svg viewBox="0 0 110 110" fill="none" width="110" height="110">
+        <path d="M55 8 L92 24 L92 58 C92 80 73 96 55 104 C37 96 18 80 18 58 L18 24 Z"
+              fill="rgba(60,181,74,0.12)" stroke="#3CB54A" stroke-width="2.5"/>
+        <path d="M55 18 L82 30 L82 56 C82 74 68 87 55 93 C42 87 28 74 28 56 L28 30 Z"
+              fill="rgba(60,181,74,0.07)"/>
+        <path d="M42 55 L52 65 L70 46"
+              stroke="#3CB54A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div class="tag">// seguridad</div>
+    <h1>Tu información<br><em>protegida.</em></h1>
+    <p class="subtitle">Así cuidamos tus datos</p>
+  </div>
+
+  <!-- CARDS -->
+  <div class="cards">
+
+    <!-- Cloudflare -->
+    <div class="card" id="card1">
+      <div class="card-logo">
+        <svg viewBox="0 0 76 76" fill="none" width="76" height="76">
+          <!-- Cloudflare cloud shape -->
+          <path d="M56 40 C57 37 57 34 55 31 C53 28 50 26 46 26
+                   C45 21 41 17 36 16 C30 15 24 20 23 26
+                   C18 27 14 31 14 36 C14 42 19 47 25 47
+                   L54 47 C57 47 59 44 56 40 Z"
+                fill="#F6821F"/>
+          <rect x="13" y="50" width="43" height="6" rx="3" fill="#FBAD41" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <div class="card-provider">Cloudflare</div>
+        <div class="card-title">DDoS + WAF activo</div>
+        <div class="card-detail">Rate limiting · Proxy · DNS seguro</div>
+      </div>
+      <div class="card-check" id="check1">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4 11 L9 16 L18 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- SSL/HTTPS -->
+    <div class="card" id="card2">
+      <div class="card-logo">
+        <svg viewBox="0 0 76 76" fill="none" width="76" height="76">
+          <rect x="16" y="34" width="44" height="30" rx="8" fill="#1A3557"/>
+          <rect x="16" y="34" width="44" height="30" rx="8" stroke="#3CB54A" stroke-width="2"/>
+          <path d="M26 34 L26 25 C26 16 50 16 50 25 L50 34"
+                stroke="#3CB54A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="38" cy="49" r="5" fill="#3CB54A"/>
+          <rect x="36" y="50" width="4" height="7" rx="2" fill="#3CB54A"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <div class="card-provider">TLS 1.2+</div>
+        <div class="card-title">SSL Full Strict</div>
+        <div class="card-detail">HSTS 1 año · Always HTTPS</div>
+      </div>
+      <div class="card-check" id="check2">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4 11 L9 16 L18 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Backblaze B2 -->
+    <div class="card" id="card3">
+      <div class="card-logo">
+        <svg viewBox="0 0 76 76" fill="none" width="76" height="76">
+          <!-- Backblaze flame -->
+          <path d="M38 8 C38 8 54 24 54 40 C54 52 47 59 38 63
+                   C29 59 22 52 22 40 C22 24 38 8 38 8 Z"
+                fill="#FF3B30"/>
+          <path d="M38 32 C38 32 47 40 47 50 C47 57 43 63 38 67
+                   C33 63 29 57 29 50 C29 40 38 32 38 32 Z"
+                fill="#FF8C00"/>
+          <ellipse cx="38" cy="57" rx="6" ry="5" fill="#FFD600"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <div class="card-provider">Backblaze B2</div>
+        <div class="card-title">Archivos cifrados</div>
+        <div class="card-detail">Bucket privado · URLs firmadas</div>
+      </div>
+      <div class="card-check" id="check3">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4 11 L9 16 L18 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Email Auth -->
+    <div class="card" id="card4">
+      <div class="card-logo">
+        <svg viewBox="0 0 76 76" fill="none" width="76" height="76">
+          <rect x="10" y="22" width="56" height="38" rx="8" fill="#1A3557" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+          <path d="M10 28 L38 46 L66 28" stroke="#3CB54A" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <div class="card-provider">Email auth</div>
+        <div class="card-title">Anti-phishing</div>
+        <div class="card-detail">SPF · DKIM · DMARC activo</div>
+      </div>
+      <div class="card-check" id="check4">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4 11 L9 16 L18 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- GitHub -->
+    <div class="card" id="card5">
+      <div class="card-logo">
+        <svg viewBox="0 0 76 76" fill="none" width="76" height="76">
+          <circle cx="38" cy="38" r="28" fill="#24292E"/>
+          <path d="M38 18 C27 18 18 27 18 38 C18 47 24 54 32 57
+                   C33 57 33 56 33 55 L33 52 C28 53 27 50 26 49
+                   C26 48 25 47 24 47 C24 47 24 48 25 48
+                   C27 48 28 50 29 51 C30 53 33 52 33 51
+                   C33 50 28 49 28 43 C28 40 30 37 32 36
+                   C32 36 31 32 32 30 C33 30 35 31 38 33
+                   C39 33 41 32 44 33 C47 31 49 30 50 30
+                   C51 32 50 36 50 36 C52 37 54 40 54 43
+                   C54 49 49 50 49 51 L49 55 C49 56 49 57 50 57
+                   C58 54 58 47 58 38 C58 27 49 18 38 18 Z"
+                fill="white"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <div class="card-provider">GitHub</div>
+        <div class="card-title">Repos privados</div>
+        <div class="card-detail">Código fuente protegido</div>
+      </div>
+      <div class="card-check" id="check5">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4 11 L9 16 L18 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer" id="footer">
+    <div class="divider"></div>
+    <div class="footer-brand"><em>Control</em> Platform</div>
+    <div class="footer-sub">controldoc.app</div>
+  </div>
+
+</div>
+
+<script>
+  const DURACION_MS = 23000;
+
+  const items = [
+    { card: 'card1', check: 'check1', t: 2800  },
+    { card: 'card2', check: 'check2', t: 5400  },
+    { card: 'card3', check: 'check3', t: 8000  },
+    { card: 'card4', check: 'check4', t: 10600 },
+    { card: 'card5', check: 'check5', t: 13200 },
+  ];
+
+  items.forEach(({ card, check, t }) => {
+    setTimeout(() => {
+      document.getElementById(card).classList.add('visible');
+      setTimeout(() => document.getElementById(check).classList.add('visible'), 420);
+    }, t);
+  });
+
+  setTimeout(() => {
+    document.getElementById('footer').classList.add('visible');
+  }, 16500);
+
+  setTimeout(() => {
+    window.parent.postMessage({ type: 'gsd:done' }, '*');
+  }, DURACION_MS);
+</script>
+</body>
+</html>
