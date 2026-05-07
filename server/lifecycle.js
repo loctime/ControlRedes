@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { renderHtmlToVideo } = require('./renderer');
 
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 const WATCH_DIR = path.resolve(__dirname, '..', 'nuevas-publicaciones');
 const ARCHIVE_DIR = path.resolve(__dirname, '..', 'publicaciones-anteriores');
 const VIDEOS_DIR = path.resolve(__dirname, '..', 'videos-generados');
@@ -108,4 +109,29 @@ async function runPipeline(files, state, sendStatusFn, bot, chatId) {
   }
 }
 
-module.exports = { readCaption, markComplete, runPipeline, findCompanionAudio };
+async function renderPath(relPath) {
+  const segments = relPath.split('/');
+  const absPath = path.resolve(PROJECT_ROOT, ...segments);
+  if (!absPath.startsWith(PROJECT_ROOT + path.sep) && absPath !== PROJECT_ROOT) {
+    throw new Error('Path fuera del proyecto');
+  }
+  if (!absPath.endsWith('.html')) throw new Error('Solo archivos .html');
+  if (!fs.existsSync(absPath)) throw new Error(`Archivo no encontrado: ${relPath}`);
+
+  const basename = path.basename(absPath, '.html');
+  const outputPath = path.join(VIDEOS_DIR, `${basename}.mp4`);
+  const encodedPath = segments.map(encodeURIComponent).join('/');
+  const htmlUrl = `http://localhost:3333/project/${encodedPath}`;
+
+  return renderHtmlToVideo({
+    htmlUrl,
+    outputPath,
+    width: 1080,
+    height: 1920,
+    fps: 30,
+    timeoutSeconds: 90,
+    bufferSeconds: 1.5,
+  });
+}
+
+module.exports = { readCaption, markComplete, runPipeline, findCompanionAudio, renderPath };

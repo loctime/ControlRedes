@@ -10,10 +10,12 @@ const multer = require('multer');
 const { initBot, sendStatus } = require('./telegram');
 const { runPipeline, markComplete } = require('./lifecycle');
 
+const PORT = process.env.PORT || 3333;
+const PROJECT_ROOT = path.resolve(__dirname, '..');
+
 const app = express();
 app.use(express.json());
-
-const PORT = process.env.PORT || 3333;
+app.use('/project', express.static(PROJECT_ROOT, { dotfiles: 'ignore' }));
 const WATCH_DIR = path.resolve(__dirname, '..', 'nuevas-publicaciones');
 const ARCHIVE_DIR = path.resolve(__dirname, '..', 'publicaciones-anteriores');
 const VIDEOS_DIR = path.resolve(__dirname, '..', 'videos-generados');

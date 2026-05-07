@@ -1,0 +1,115 @@
+<h2>¿Cómo se muestra el workflow de 3 pasos?</h2>
+<p class="subtitle">Telegram → IA procesa → ControlDoc actualizado</p>
+
+<div class="cards" style="gap:18px;margin-top:24px">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="background:#D4A24C;color:#081A33;font-weight:900;font-size:12px;padding:2px 10px;border-radius:20px">A</div>
+        <h3 style="margin:0">Flujo horizontal con partículas</h3>
+      </div>
+      <p style="margin:0 0 10px;color:#aaa;font-size:13px">Los 3 pasos aparecen en fila, conectados por una línea animada. Las partículas/datos viajan de un paso al siguiente.</p>
+      <!-- Mockup -->
+      <div style="background:#0a1628;border-radius:12px;padding:16px;font-family:monospace">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="flex:1;background:#143A6B;border:1px solid #D4A24C;border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:22px">📱</div>
+            <div style="color:#F6F2E8;font-size:11px;font-weight:700;margin-top:4px">Telegram</div>
+            <div style="color:#aaa;font-size:10px">PDF enviado</div>
+          </div>
+          <!-- Animated arrow line -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:28px">
+            <div style="height:2px;background:linear-gradient(90deg,#D4A24C,transparent);width:28px;animation:none"></div>
+            <div style="color:#D4A24C;font-size:16px">→</div>
+            <div style="height:6px;width:6px;background:#D4A24C;border-radius:50;border-radius:50%"></div>
+          </div>
+          <div style="flex:1;background:#143A6B;border:1px solid rgba(212,162,76,0.5);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:22px">🤖</div>
+            <div style="color:#F6F2E8;font-size:11px;font-weight:700;margin-top:4px">IA analiza</div>
+            <div style="color:#aaa;font-size:10px">clasifica docs</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:28px">
+            <div style="height:2px;background:linear-gradient(90deg,#22A745,transparent);width:28px"></div>
+            <div style="color:#22A745;font-size:16px">→</div>
+            <div style="height:6px;width:6px;background:#22A745;border-radius:50%"></div>
+          </div>
+          <div style="flex:1;background:#143A6B;border:1px solid #22A745;border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:22px">✅</div>
+            <div style="color:#F6F2E8;font-size:11px;font-weight:700;margin-top:4px">ControlDoc</div>
+            <div style="color:#22A745;font-size:10px">actualizado</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:6px;margin-top:10px">
+          <div style="width:6px;height:6px;background:#D4A24C;border-radius:50%"></div>
+          <div style="width:6px;height:6px;background:#D4A24C;border-radius:50%;opacity:0.6"></div>
+          <div style="width:6px;height:6px;background:#D4A24C;border-radius:50%;opacity:0.3"></div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#888">Los nodos se iluminan en secuencia, puntos viajan por la línea de conexión</div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="background:#5B9BD5;color:#fff;font-weight:900;font-size:12px;padding:2px 10px;border-radius:20px">B</div>
+        <h3 style="margin:0">Pantalla completa por paso — cortes rápidos</h3>
+      </div>
+      <p style="margin:0 0 10px;color:#aaa;font-size:13px">Cada paso toma toda la pantalla por 2 segundos. Transición de slide rápida. Más impacto visual por paso.</p>
+      <div style="background:#0a1628;border-radius:12px;padding:12px;display:flex;gap:8px">
+        <div style="flex:1;background:#081A33;border:2px solid #D4A24C;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:28px">📱</div>
+          <div style="color:#D4A24C;font-size:10px;font-weight:700;margin-top:4px">PASO 1</div>
+          <div style="color:#F6F2E8;font-size:11px">Mandás el PDF por Telegram</div>
+        </div>
+        <div style="flex:1;background:#081A33;border:1px solid #333;border-radius:8px;padding:10px;text-align:center;opacity:0.4">
+          <div style="font-size:28px">🤖</div>
+          <div style="color:#888;font-size:10px;font-weight:700;margin-top:4px">PASO 2</div>
+          <div style="color:#888;font-size:11px">La IA lo clasifica</div>
+        </div>
+        <div style="flex:1;background:#081A33;border:1px solid #333;border-radius:8px;padding:10px;text-align:center;opacity:0.4">
+          <div style="font-size:28px">✅</div>
+          <div style="color:#888;font-size:10px;font-weight:700;margin-top:4px">PASO 3</div>
+          <div style="color:#888;font-size:11px">CD actualizado</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#888">El paso activo brilla, los demás están apagados. Slide de izquierda a derecha entre pasos.</div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="background:#9B59B6;color:#fff;font-weight:900;font-size:12px;padding:2px 10px;border-radius:20px">C</div>
+        <h3 style="margin:0">Stack vertical con línea de tiempo</h3>
+      </div>
+      <p style="margin:0 0 10px;color:#aaa;font-size:13px">Los pasos caen de arriba hacia abajo uno por uno, con una línea vertical como timeline. Efecto "log en tiempo real".</p>
+      <div style="background:#0a1628;border-radius:12px;padding:14px;display:flex;gap:12px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+          <div style="width:10px;height:10px;background:#D4A24C;border-radius:50%;margin-top:6px"></div>
+          <div style="width:2px;flex:1;background:linear-gradient(#D4A24C,#5B9BD5);margin:4px 0"></div>
+          <div style="width:10px;height:10px;background:#5B9BD5;border-radius:50%"></div>
+          <div style="width:2px;flex:1;background:linear-gradient(#5B9BD5,#22A745);margin:4px 0"></div>
+          <div style="width:10px;height:10px;background:#22A745;border-radius:50%;margin-bottom:6px"></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+          <div style="background:#143A6B;border-radius:8px;padding:8px">
+            <div style="color:#D4A24C;font-size:10px;font-weight:700">14:32:01</div>
+            <div style="color:#F6F2E8;font-size:12px">📱 PDF recibido — documentos-mayo.pdf</div>
+          </div>
+          <div style="background:#143A6B;border-radius:8px;padding:8px">
+            <div style="color:#5B9BD5;font-size:10px;font-weight:700">14:32:04</div>
+            <div style="color:#F6F2E8;font-size:12px">🤖 IA: 4 documentos clasificados</div>
+          </div>
+          <div style="background:#143A6B;border-radius:8px;padding:8px">
+            <div style="color:#22A745;font-size:10px;font-weight:700">14:32:07</div>
+            <div style="color:#F6F2E8;font-size:12px">✅ ControlDoc actualizado</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#888">Cada línea del log aparece una por una con typing effect. Muy técnico/pro.</div>
+    </div>
+  </div>
+
+</div>

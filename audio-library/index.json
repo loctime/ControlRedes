@@ -1,0 +1,20 @@
+[
+  {
+    "id": "corporate-tech-short",
+    "file": "corporate-tech-short.mp3",
+    "tags": ["corporativo", "tech", "upbeat", "motivacional", "fondo", "saas", "business"],
+    "description": "Freesound #750508 - Upbeat Corporate Short (36s), fondo para ads tech/SaaS"
+  },
+  {
+    "id": "notification-chime",
+    "file": "notification-chime.mp3",
+    "tags": ["notificacion", "chime", "mensaje", "bot", "efecto", "corto"],
+    "description": "Freesound #351879 - Computer Chimes Notification (1.5s), efecto para mensajes/bots"
+  },
+  {
+    "id": "success-ding",
+    "file": "success-ding.mp3",
+    "tags": ["exito", "completado", "ding", "confirmacion", "efecto", "corto"],
+    "description": "Freesound #350768 - Success Ding (1.5s), efecto para confirmaciones/checkmarks"
+  }
+]

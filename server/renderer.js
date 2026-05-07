@@ -223,6 +223,7 @@ async function renderHtmlToVideo({
 
     const frameIntervalMs = Math.max(20, Math.floor(1000 / fps));
     const captureStart = Date.now();
+    let nextFrameTargetMs = captureStart;
     let doneAt = null;
     let frameIndex = 1;
 
@@ -249,8 +250,19 @@ async function renderHtmlToVideo({
         break;
       }
 
-      await delay(frameIntervalMs);
+      // Schedule next frame by wall clock so the actual capture rate matches fps.
+      // If the screenshot itself took longer than the interval we don't wait at all.
+      nextFrameTargetMs += frameIntervalMs;
+      const waitMs = nextFrameTargetMs - Date.now();
+      if (waitMs > 0) {
+        await delay(waitMs);
+      }
     }
+
+    // Use the real capture rate so ffmpeg encodes at the right speed regardless
+    // of how long each screenshot took.
+    const captureElapsedSec = (Date.now() - captureStart) / 1000;
+    const actualFps = Math.max(1, (frameIndex - 1) / captureElapsedSec);
 
     if (!mixedAudioPath) {
       let injectedAudio = await page.evaluate(() => ({
@@ -285,15 +297,16 @@ async function renderHtmlToVideo({
       console.log('[renderer] no audio found; exporting with silent fallback');
     }
 
+    console.log(`[renderer] captured ${frameIndex - 1} frames in ${captureElapsedSec.toFixed(1)}s → actual fps: ${actualFps.toFixed(1)}`);
     await runFfmpegFromFrames({
       framesPattern: framePattern,
-      fps,
+      fps: actualFps,
       outputPath,
       audioPath: mixedAudioPath,
     });
     console.log(`[renderer] exported mp4: ${outputPath}`);
 
-    const durationSeconds = Math.max(1, Math.round((Date.now() - captureStart) / 1000));
+    const durationSeconds = Math.max(1, Math.round(captureElapsedSec));
     return {
       width: captureRect.width,
       height: captureRect.height,

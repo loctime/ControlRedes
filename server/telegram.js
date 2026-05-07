@@ -4,9 +4,52 @@ const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');
 const { pickThreeByPrompt, getAudioAbsPath, ensureLibraryDir } = require('./audio-library');
+const { renderPath } = require('./lifecycle');
 
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 const WATCH_DIR = path.resolve(__dirname, '..', 'nuevas-publicaciones');
 const COMMAND_TRIGGER = 'publica lo nuevo';
+
+const EXCLUDED_DIRS = new Set(['node_modules', '.git', 'dist', 'server', 'extension', '.planning', 'audio-library']);
+
+function buildNavMessage(currentPath) {
+  const relBase = path.relative(PROJECT_ROOT, currentPath) || '.';
+  let entries;
+  try {
+    entries = fs.readdirSync(currentPath, { withFileTypes: true });
+  } catch (_) {
+    return { msg: 'No se puede leer esta carpeta.', items: [] };
+  }
+
+  const dirs = entries
+    .filter((e) => e.isDirectory() && !EXCLUDED_DIRS.has(e.name) && !e.name.startsWith('.'))
+    .map((e) => e.name)
+    .sort();
+
+  const htmls = entries
+    .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.html'))
+    .map((e) => e.name)
+    .sort();
+
+  const items = [];
+  let msg = `📁 ${relBase}\n\n`;
+
+  if (dirs.length > 0) {
+    msg += 'Carpetas:\n';
+    dirs.forEach((d) => { items.push({ type: 'dir', name: d }); msg += `  ${items.length}. 📂 ${d}/\n`; });
+    msg += '\n';
+  }
+
+  if (htmls.length > 0) {
+    msg += 'HTMLs:\n';
+    htmls.forEach((h) => { items.push({ type: 'html', name: h }); msg += `  ${items.length}. 📄 ${h}\n`; });
+  }
+
+  if (items.length === 0) msg += '(carpeta vacía)\n';
+
+  msg += `\n0. ← Atrás${relBase === '.' ? ' (ya estás en raíz)' : ''}`;
+  return { msg, items };
+}
 
 function initBot(state, onTrigger) {
   const token = process.env.BOT_TOKEN;
@@ -17,11 +60,13 @@ function initBot(state, onTrigger) {
 
   ensureLibraryDir();
   const pendingAudioChoiceByChat = new Map();
+  const pendingNavByChat = new Map(); // { currentPath, history: [], items: [] }
   const bot = new TelegramBot(token, { polling: true });
 
   bot.setMyCommands([
     { command: '/start', description: 'Mostrar menu' },
     { command: '/publicar', description: 'Publicar lo nuevo' },
+    { command: '/generar', description: 'Generar video eligiendo HTML' },
     { command: '/sonido', description: 'Elegir audio por prompt' },
   ]).catch((err) => console.error('[Telegram] Error al configurar comandos:', err.message));
 
@@ -35,6 +80,68 @@ function initBot(state, onTrigger) {
     const rawText = String(msg.text || '').trim();
     const text = rawText.toLowerCase();
 
+    // ── Navegación /generar ──────────────────────────────────────────────────
+    if (/^\d+$/.test(text) && pendingNavByChat.has(fromChatId)) {
+      const nav = pendingNavByChat.get(fromChatId);
+      const num = parseInt(text, 10);
+
+      if (num === 0) {
+        if (nav.history.length === 0) {
+          await bot.sendMessage(fromChatId, 'Ya estás en la raíz.');
+        } else {
+          nav.currentPath = nav.history.pop();
+          const { msg, items } = buildNavMessage(nav.currentPath);
+          nav.items = items;
+          await bot.sendMessage(fromChatId, msg);
+        }
+        return;
+      }
+
+      const item = nav.items[num - 1];
+      if (!item) {
+        await bot.sendMessage(fromChatId, `Opción ${num} no existe.`);
+        return;
+      }
+
+      if (item.type === 'dir') {
+        nav.history.push(nav.currentPath);
+        nav.currentPath = path.join(nav.currentPath, item.name);
+        const { msg, items } = buildNavMessage(nav.currentPath);
+        nav.items = items;
+        await bot.sendMessage(fromChatId, msg);
+        return;
+      }
+
+      // HTML seleccionado — disparar render
+      if (state.pipeline !== 'idle') {
+        await bot.sendMessage(fromChatId, 'Ya hay un pipeline activo. Esperá que termine.');
+        return;
+      }
+      pendingNavByChat.delete(fromChatId);
+      const relPath = path.relative(PROJECT_ROOT, path.join(nav.currentPath, item.name)).split(path.sep).join('/');
+      state.pipeline = 'server_rendering';
+      await bot.sendMessage(fromChatId, `⏳ Generando video de ${item.name}...`);
+      renderPath(relPath)
+        .then(async (specs) => {
+          state.pipeline = 'idle';
+          await sendStatus(bot, fromChatId, `✓ Video listo: ${path.basename(relPath, '.html')}.mp4\n${specs.width}×${specs.height} · ${specs.duration}s`);
+        })
+        .catch(async (err) => {
+          state.pipeline = 'idle';
+          await sendStatus(bot, fromChatId, `Error al renderizar: ${err.message}`);
+        });
+      return;
+    }
+
+    if (text.startsWith('/generar') && !text.startsWith('/generar ')) {
+      pendingAudioChoiceByChat.delete(fromChatId);
+      const { msg, items } = buildNavMessage(PROJECT_ROOT);
+      pendingNavByChat.set(fromChatId, { currentPath: PROJECT_ROOT, history: [], items });
+      await bot.sendMessage(fromChatId, msg);
+      return;
+    }
+
+    // ── Audio choice ─────────────────────────────────────────────────────────
     if (/^[123]$/.test(text) && pendingAudioChoiceByChat.has(fromChatId)) {
       const choice = Number(text) - 1;
       const pending = pendingAudioChoiceByChat.get(fromChatId);
@@ -103,7 +210,7 @@ function initBot(state, onTrigger) {
       await bot.sendMessage(fromChatId, 'Selecciona una accion:', {
         reply_markup: {
           keyboard: [
-            [{ text: 'Publica lo nuevo' }],
+            [{ text: 'Publica lo nuevo' }, { text: '/generar' }],
           ],
           resize_keyboard: true,
           is_persistent: true,

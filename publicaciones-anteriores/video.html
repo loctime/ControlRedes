@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>ControlBun — Video publicidad 9:16</title>
+<link rel="stylesheet" href="brand.css"/>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="logo.jsx"></script>
+<script type="text/babel" src="telegram.jsx"></script>
+<script type="text/babel" src="video-scenes.jsx"></script>
+<style>
+  html, body { background:#0a0a0a; height:100%; }
+  #root { position:fixed; inset:0; }
+</style>
+</head>
+<body>
+<div id="root" data-screen-label="00s"></div>
+<script type="text/babel">
+const DURATION = 25;
+
+function TimeLabelUpdater() {
+  const t = useTime();
+  React.useEffect(() => {
+    const r = document.getElementById('root');
+    if (r) r.dataset.screenLabel = String(Math.floor(t)).padStart(2,'0') + 's';
+  }, [Math.floor(t)]);
+  return null;
+}
+
+function App() {
+  return (
+    <Stage width={VIDEO_W} height={VIDEO_H} duration={DURATION} background="#000" persistKey="controlbun-ad">
+      <TimeLabelUpdater/>
+      <SceneFrame start={0}    duration={4.0}>  <SceneHook/>     </SceneFrame>
+      <SceneFrame start={4.0}  duration={5.5}>  <SceneSolution/> </SceneFrame>
+      <SceneFrame start={9.5}  duration={4.5}>  <SceneFeatures/> </SceneFrame>
+      <SceneFrame start={14.0} duration={11.0}> <SceneCTA/>      </SceneFrame>
+    </Stage>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

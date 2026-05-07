@@ -10,12 +10,17 @@ Chrome Extension + Node.js local server que publica videos (renderizados desde H
 ControlRedes/
 ├── server/                  ← Node.js/Express en localhost:3333
 ├── extension/               ← Chrome Extension MV3
+├── dist/                    ← Build output de la extensión
+├── ControlBun/              ← App React (diseño/ads de ControlBun: video.html, placas.html, JSX)
 ├── context_ptojects/        ← Contexto de productos para generación de contenido
 │   ├── SKILL_HTML_ADDS.md
 │   ├── SKILL_HTML_CONTENIDO.md
-│   ├── nuevas-publicaciones/
-│   ├── publicaciones-anteriores/
-│   └── [Producto]/info.md, colores.md, capturas/
+│   ├── ControlAudit/        ← info.md, colores.md del producto ControlAudit
+│   └── ControlBun/          ← info.md, colores.md del producto ControlBun
+├── nuevas-publicaciones/    ← Posts pendientes de publicar (por producto)
+│   └── [Producto]/post.html + post.caption.txt
+├── publicaciones-anteriores/ ← Posts ya publicados (HTML + .meta.json)
+├── videos-generados/        ← MP4 generados
 └── .planning/
 ```
 

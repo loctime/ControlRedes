@@ -1,0 +1,27 @@
+/* ControlBun brand tokens */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --cb-navy:   #143A6B;
+  --cb-navy-2: #0E2A4F;
+  --cb-navy-3: #081A33;
+  --cb-green:  #22A745;
+  --cb-green-2:#1B8A39;
+  --cb-gold:   #D4A24C;
+  --cb-gold-2: #B98837;
+  --cb-cream:  #F6F2E8;
+  --cb-bg:     #F5F7FA;
+  --cb-ink:    #0B1420;
+  --cb-mute:   #6B7785;
+  --cb-line:   #E4E8EE;
+  --cb-tg:     #229ED9;        /* telegram blue */
+  --cb-red:    #E0463A;
+  --cb-amber:  #E89A2B;
+
+  --font-display: 'Manrope', system-ui, sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+
+html, body { margin:0; padding:0; background:#0a0a0a; color:var(--cb-ink); font-family:var(--font-body); }
+* { box-sizing: border-box; }
