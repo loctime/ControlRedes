@@ -79,6 +79,6 @@
 
 | Archivo | Ruta | Uso |
 |---------|------|-----|
-| Banner | `ControlBun/ControlBun-banner.png` | Presentaciones, cabeceras |
-| Logo component | `ControlBun/logo.jsx` (CBLogo) | Modo `light` y `dark` |
-| brand.css | `ControlBun/brand.css` | Todos los tokens de color y tipografía |
+| Banner | `context_ptojects/ControlBun/uploads/ControlBun-banner.png` | Presentaciones, cabeceras |
+| Logo component | `context_ptojects/ControlBun/app/logo.jsx` (CBLogo) | Modo `light` y `dark` |
+| brand.css | `context_ptojects/ControlBun/app/brand.css` | Todos los tokens de color y tipografía |

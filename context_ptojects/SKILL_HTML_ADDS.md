@@ -164,9 +164,8 @@ Si ninguna encaja perfectamente, combiná o inventá la estructura que mejor sir
 
 ```
 nuevas-publicaciones/
-└── [Producto]/
-    ├── [producto]-[matriz]-[plataforma]-v[n].html
-    └── caption-[tema].txt
+├── [producto]-[tipo]-[tema]-[plataforma]-v[n].html
+└── [producto]-[tipo]-[tema]-[plataforma]-v[n].caption.txt
 ```
 
 ---

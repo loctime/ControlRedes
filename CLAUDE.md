@@ -8,21 +8,45 @@ Chrome Extension + Node.js local server que publica videos (renderizados desde H
 
 ```
 ControlRedes/
-├── server/                  ← Node.js/Express en localhost:3333
-├── extension/               ← Chrome Extension MV3
-├── dist/                    ← Build output de la extensión
-├── ControlBun/              ← App React (diseño/ads de ControlBun: video.html, placas.html, JSX)
-├── context_ptojects/        ← Contexto de productos para generación de contenido
-│   ├── SKILL_HTML_ADDS.md
-│   ├── SKILL_HTML_CONTENIDO.md
-│   ├── ControlAudit/        ← info.md, colores.md del producto ControlAudit
-│   └── ControlBun/          ← info.md, colores.md del producto ControlBun
-├── nuevas-publicaciones/    ← Posts pendientes de publicar (por producto)
-│   └── [Producto]/post.html + post.caption.txt
-├── publicaciones-anteriores/ ← Posts ya publicados (HTML + .meta.json)
-├── videos-generados/        ← MP4 generados
+├── server/                        ← Node.js/Express en localhost:3333
+├── extension/                     ← Chrome Extension MV3
+├── dist/                          ← Build output de la extensión
+├── audio-library/                 ← Audios genéricos reutilizables
+│
+├── context_ptojects/              ← Todo el contexto/fuente de cada producto (NO se publica desde aquí)
+│   ├── SKILL_HTML_ADDS.md         ← Skill para generar publicidades
+│   ├── SKILL_HTML_CONTENIDO.md    ← Skill para generar contenido orgánico
+│   ├── ControlAudit/
+│   │   ├── info.md, colores.md
+│   │   └── ejemplos_ads/          ← Referencia visual (no son publicaciones)
+│   └── ControlBun/
+│       ├── info.md, colores.md, controlbun.md
+│       ├── uploads/               ← Imágenes de referencia del producto
+│       ├── scraps/                ← Borradores
+│       └── app/                   ← App React de ControlBun (video.html, placas.html, JSX, CSS)
+│           ├── video.html         ← Depende de los JSX de esta misma carpeta
+│           ├── placas.html        ← Depende de los JSX de esta misma carpeta
+│           ├── animations.jsx, brand.css, logo.jsx, etc.
+│
+├── nuevas-publicaciones/          ← ÚNICA zona del watcher — PLANA, sin subcarpetas
+│   └── [producto]-[tipo]-[tema]-[plataforma]-v[N].html  ← HTML auto-contenido listo para publicar
+│       [producto]-[tipo]-[tema]-[plataforma]-v[N].caption.txt
+│
+├── publicaciones-anteriores/      ← Posts ya publicados (HTML + .meta.json)
+├── videos-generados/              ← MP4 generados
 └── .planning/
 ```
+
+### Dos tipos de HTML, una sola zona de publicación
+
+**Flow A — Claude genera (auto-contenido):** HTML sin dependencias externas, se pone directo en `nuevas-publicaciones/`.
+
+**Flow B — Claude Design (con dependencias):** HTML que usa JSX/CSS de `context_ptojects/ControlBun/app/`. Los archivos fuente viven en `app/`. Cuando esté listo para publicar, el HTML debe referenciar sus deps via URL absoluta del servidor local:
+```html
+<link rel="stylesheet" href="http://localhost:3333/project/context_ptojects/ControlBun/app/brand.css"/>
+<script type="text/babel" src="http://localhost:3333/project/context_ptojects/ControlBun/app/animations.jsx"></script>
+```
+Luego copiás solo el HTML a `nuevas-publicaciones/` — el servidor sirve las deps automáticamente.
 
 ---
 
@@ -103,39 +127,31 @@ publicaciones-anteriores/post.html + post.meta.json
 
 ## Modo 2 — Creación de contenido HTML para redes
 
-### Cuándo usarlo
+Los skills `html-ads` y `html-contenido` manejan la técnica. Este bloque solo agrega el contexto específico de ControlRedes.
 
-- Usuario pide un ad, reel, carrusel, contenido educativo o publicidad para IG/LinkedIn.
+### Contexto de producto disponible
 
-### Dos skills disponibles
+```
+context_ptojects/
+├── ControlAudit/   → info.md, colores.md
+└── ControlBun/     → info.md, colores.md, controlbun.md
+```
 
-- **`context_ptojects/SKILL_HTML_ADDS.md`** → publicidades (objetivo: venta/conversión)
-- **`context_ptojects/SKILL_HTML_CONTENIDO.md`** → contenido orgánico (objetivo: valor/educación)
+Si el usuario no dice qué producto, listar las carpetas y preguntar. Si lo dice, ir directo a leer `info.md` y `colores.md` de esa carpeta — nada más.
 
-En caso de duda preguntar: *"¿Querés que sea publicitario o contenido de valor?"*
+**Fast Context Policy:**
+- Leer SOLO `info.md` + `colores.md` del producto pedido
+- NO leer `capturas/`, `ejemplos_ads/`, ni `.planning/` salvo pedido explícito
 
-### Cómo arrancar
+### Dónde guardar
 
-1. Leer el skill correspondiente
-2. Identificar el producto (si no lo dijo, listar carpetas en `context_ptojects/` y preguntar)
-3. Leer `context_ptojects/[Producto]/info.md` y `colores.md`
-4. Hacer mínimas preguntas → generar HTML + caption en un solo paso
-5. Guardar en `context_ptojects/nuevas-publicaciones/[Producto]/`  
-   Nombre: `[producto]-[tipo]-[tema]-[plataforma]-v[número].html` + `.txt`
+```
+nuevas-publicaciones/
+├── [producto]-[tipo]-[tema]-[plataforma]-v[N].html
+└── [producto]-[tipo]-[tema]-[plataforma]-v[N].caption.txt
+```
 
-### Fast Context Policy (control de costos)
-
-- Leer SOLO `info.md` y `colores.md` del producto
-- NO leer `capturas/` salvo que el usuario lo pida explícitamente
-- NO leer `.planning/*` para tareas creativas
-- NO leer ejemplos históricos salvo pedido explícito
-- Máximo una pregunta de clarificación, luego generar
-
-### Reglas generales de HTML
-
-- Dimensiones: **1080×1920px** sin excepción
-- Sin assets locales — solo Google Fonts, SVG e imágenes base64
-- Siempre incluir la señal `gsd:done` en el JS
+Ejemplo: `controlaudit-ads-accidentes-instagram-v2.html`
 
 ---
 

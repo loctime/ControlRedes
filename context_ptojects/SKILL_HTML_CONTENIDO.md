@@ -147,11 +147,9 @@ Todo lo que sigue es orientación, no regla. Claude elige lo que mejor sirva al 
 ## Dónde guardar
 
 ```
-context_ptojects/
-└── [Producto]/
-    └── ejemplos_ads/
-        ├── [producto]-[tema]-[plataforma]-v[n].html
-        └── caption-[tema].txt
+nuevas-publicaciones/
+├── [producto]-[tipo]-[tema]-[plataforma]-v[n].html
+└── [producto]-[tipo]-[tema]-[plataforma]-v[n].caption.txt
 ```
 
 ---
